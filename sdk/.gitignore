@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Environment files
+.env
+*.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Azure Functions
+local.settings.json
+.python_packages/
+
+# Node / Frontend
+node_modules/
+frontend/.next/
+frontend/.turbo/
+
+# Vector DB
+qdrant/data/
+qdrant/.env
+
+# Database
+database/data/
+database/pb_data/
+
+# Testing
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# Logs
+*.log

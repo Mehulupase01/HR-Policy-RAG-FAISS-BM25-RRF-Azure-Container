@@ -1,0 +1,22 @@
+# secrets — never commit
+.env
+.env.local
+.env.*.local
+!.env.example
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+# Build / dist
+dist/
+build/
+*.egg-info/
+# Data caches (regenerable)
+data/cache/
+data/index/
+# IDE
+.vscode/
+.idea/
+.DS_Store

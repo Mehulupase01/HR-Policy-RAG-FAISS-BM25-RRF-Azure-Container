@@ -1,0 +1,25 @@
+[project]
+name = "rag-project"
+version = "0.1.0"
+description = "RAG + Python SDK template for Azure AI projects"
+requires-python = ">=3.11"
+
+[tool.black]
+line-length = 120
+target-version = ["py311"]
+
+[tool.isort]
+profile = "black"
+line_length = 120
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
+markers = [
+    "integration: marks tests that hit live Azure resources (deselect with '-m \"not integration\"')",
+]

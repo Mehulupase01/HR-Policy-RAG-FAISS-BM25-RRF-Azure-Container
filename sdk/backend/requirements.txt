@@ -1,0 +1,26 @@
+# Azure Functions runtime
+azure-functions==1.21.3
+
+# Azure Blob Storage
+azure-storage-blob==12.19.1
+
+# Environment management
+python-dotenv==1.0.1
+
+# CLI
+click==8.1.7
+
+# Vector database
+qdrant-client==1.10.0
+
+# Document parsing
+pypdf==4.2.0
+python-docx==1.1.2
+openpyxl==3.1.5
+
+# Text splitting & embeddings
+langchain-text-splitters==0.2.4
+langchain-openai==0.1.8
+
+# Testing
+pytest==8.2.2
