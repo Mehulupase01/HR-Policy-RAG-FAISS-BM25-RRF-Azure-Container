@@ -6,6 +6,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
+import numpy as np
+from numpy.typing import NDArray
+
 
 Source = Literal["opengov", "madetech"]
 DocumentFormat = Literal["md", "pdf"]
@@ -29,3 +32,4 @@ class Chunk:
     text: str
     token_count: int
     page_marker: int | None
+    embedding: NDArray[np.float32] | None = None

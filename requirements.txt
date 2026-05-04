@@ -1,8 +1,14 @@
 fastapi==0.115.6
+faiss-cpu==1.9.0.post1
 httpx==0.28.1
+numpy==2.2.1
+openai==1.59.7
+pandas==2.2.3
 pdfminer.six==20240706
+pyarrow==18.1.0
 pydantic-settings==2.7.1
 pypdf==5.1.0
 python-dotenv==1.0.1
+rank-bm25==0.2.2
 tiktoken==0.8.0
 uvicorn[standard]==0.34.0

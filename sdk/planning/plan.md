@@ -158,11 +158,11 @@ Employees need reliable answers over 32 HR policy documents that come from two d
 
 ### Phase 6: Embeddings And FAISS Index
 
-- [ ] Use Azure OpenAI `text-embedding-3-large` deployment.
-- [ ] Generate 3072-dimensional embeddings for chunks.
-- [ ] Build FAISS index, BM25 index, and parquet chunk metadata.
-- [ ] Persist artifacts locally and upload to Azure Blob Storage.
-- [ ] Validate FAISS row order against metadata `vector_row`.
+- [x] Use Azure OpenAI `text-embedding-3-large` deployment via `client.embeddings.create(model=<deployment>)`.
+- [x] Generate 3072-dimensional embeddings for chunks with rate limiting, retries, and input validation.
+- [x] Build FAISS index, BM25 index, and parquet chunk metadata.
+- [x] Persist artifacts locally and implement Azure Blob upload/download plumbing.
+- [x] Validate FAISS row order against metadata `vector_row`.
 
 ### Phase 7: Retrieval
 
