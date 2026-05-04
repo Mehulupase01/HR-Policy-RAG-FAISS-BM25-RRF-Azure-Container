@@ -139,7 +139,7 @@ class CorpusLoader:
         from pypdf import PdfReader
 
         reader = PdfReader(path)
-        return "\n".join(page.extract_text() or "" for page in reader.pages)
+        return "\f".join(page.extract_text() or "" for page in reader.pages)
 
     def _read_pdf_with_pdfminer(self, path: Path) -> str:
         from pdfminer.high_level import extract_text

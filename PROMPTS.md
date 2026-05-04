@@ -7,7 +7,7 @@
 
 >Secondly I explained the whole RAG System's Architecture with full detailed setup, retireval, cloud deployment, embedding, geenration, secrets, docker & etc.
 
->
+>I explained the files, SDK and what this RAG system is for (The 32 HR policy documents)
 
 
 

@@ -151,10 +151,10 @@ Employees need reliable answers over 32 HR policy documents that come from two d
 
 ### Phase 5: Chunking The Documents
 
-- [ ] Reuse or extend SDK `DocumentChunk` and `chunk_document`.
-- [ ] Choose chunk size and overlap based on corpus shape and citation quality.
-- [ ] Preserve `chunk_id`, `source`, `file_path`, `chunk_idx`, `text`, and metadata.
-- [ ] Add tests over actual corpus text.
+- [x] Extend ingestion models with a `Chunk` dataclass while keeping SDK abstractions untouched.
+- [x] Choose initial chunk size, overlap, minimum section, and tiny-file thresholds.
+- [x] Preserve `chunk_id`, `source`, `file_path`, `chunk_idx`, `breadcrumb`, `text`, `token_count`, and `page_marker`.
+- [x] Add tests over actual corpus text.
 
 ### Phase 6: Embeddings And FAISS Index
 

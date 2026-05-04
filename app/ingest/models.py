@@ -17,3 +17,15 @@ class RawDocument:
     source: Source
     format: DocumentFormat
     content: str
+
+
+@dataclass(frozen=True)
+class Chunk:
+    chunk_id: str
+    source: Source
+    file_path: Path
+    chunk_idx: int
+    breadcrumb: str | None
+    text: str
+    token_count: int
+    page_marker: int | None
