@@ -1,5 +1,5 @@
 ## Phase 1: Setup & Azure access
-Context: Pure environment setup. No AI used 
+**Context:** Just pure environment setup. No AI used 
 
 ### Gave Instructions to Codex about what the project is and basically a project brief: 
 
@@ -76,3 +76,38 @@ Okay below is the rough list of phases I have planned, I expect you to do all th
 10. Phase 10: The evaluation harness 
 11. Phase 11: Real deployment with secrets 
 12. Phase 12: Observability, polish, Loom through
+
+
+### Phase 2: Repo scaffolding & SDK exploration
+
+**Context:** Here I sort of needed to understand what the SDK considers core abstractions vs. extension points before building on top of it. 
+
+### Here I asked Codex to deeply explore the SDK, and the Architecture: 
+
+Now before we write a single line of our own code, I really want to understand what the Refreshworks SDK actually gives us so as per the assignment & readme it says that we shouldn't fork its core abstractions, which means we need to know which parts are the core abstractions versus which parts are just runtime glue we're free to replace. 
+
+So, I want you to read through the SDK and also specifically: 
+
+>sdk/backend/agent/
+>sdk/backend/ingestion/
+>sdk/ backend/blob_client/
+>sdk/backend/function_app.py
+>sdk/AGENTS.md file
+>But also the rest other files 
+
+
+Then I want you to write me a map of what you found, organised into four sections:
+
+
+1. First, the core abstractions the classes and functions that look like they're meant to be stable interfaces, the ones we should keep using rather than replace. 
+2. Second, the extension points places where the SDK clearly invites you to swap in a different implementation, like a vector store interface or an embedder protocol. 
+3. Third, every line of code in the SDK that couples it to Azure Functions specifically the runtime glue we'll be replacing with FastAPI. 
+4. Fourth, every line that couples it to Qdrant. Since we're using FAISS instead. 
+
+
+Lastly, I want you to recommend on which SDK files we keep as-is, which we wrap or extend, and which we replace right away, and given that we're deploying to Container Apps with FAISS. 
+
+Please don't write any code yet. I really want the architectural read first, once I'm like 100% convinced you've understood the SDK properly, only then we'll start building.
+
+
+### I further asked Codex to fill in the erd-template: 
