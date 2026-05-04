@@ -1,5 +1,7 @@
 fastapi==0.115.6
 httpx==0.28.1
+pdfminer.six==20240706
 pydantic-settings==2.7.1
+pypdf==5.1.0
 python-dotenv==1.0.1
 uvicorn[standard]==0.34.0

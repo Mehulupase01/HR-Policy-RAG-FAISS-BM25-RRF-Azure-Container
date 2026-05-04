@@ -143,11 +143,11 @@ Employees need reliable answers over 32 HR policy documents that come from two d
 
 ### Phase 4: Loading The Corpus
 
-- [ ] Implement markdown and PDF text loading for files under `corpus/`.
-- [ ] Skip `corpus/opengov-handbook-consolidated.pdf`.
-- [ ] Encode the `CORPUS_SOURCES.md` file-to-source mapping explicitly.
-- [ ] Preserve source, file path, title, document type, and provenance metadata.
-- [ ] Add tests using actual corpus files.
+- [x] Implement markdown and PDF text loading for files under `corpus/`.
+- [x] Skip `corpus/opengov-handbook-consolidated.pdf`.
+- [x] Encode the `CORPUS_SOURCES.md` file-to-source mapping explicitly.
+- [x] Preserve source, file path, document format, and raw content on `RawDocument`.
+- [x] Add tests using actual corpus files.
 
 ### Phase 5: Chunking The Documents
 
