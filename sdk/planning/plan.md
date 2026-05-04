@@ -134,10 +134,10 @@ Employees need reliable answers over 32 HR policy documents that come from two d
 
 ### Phase 3: Deployable Skeleton
 
-- [ ] Add FastAPI app structure under `app/`.
-- [ ] Add Pydantic request/response/error models for `POST /query`.
-- [ ] Add a stub implementation that returns a clearly marked non-RAG response.
-- [ ] Add Dockerfile and local run command.
+- [x] Add FastAPI app structure under `app/`.
+- [x] Add Pydantic request/response/error models for `POST /query`.
+- [x] Add a stub implementation that returns a clearly marked non-RAG response.
+- [x] Add Dockerfile and local run command.
 - [ ] Verify local container startup and `POST /query`.
 - [ ] Prepare Azure Container Apps stub deployment path.
 

@@ -151,5 +151,63 @@ Update the ERD to reflect that we persist and load bm25.pkl.
 
 And lastly, remove AZURE_STORAGE_CONNECTION_STRING from the env vars. I know you've listed it as a local dev convenience but we're using DefaultAzureCredential which handles both local development via az login and production via managed identity, no connection string needed, also I think it does cause a security snag as well.
 
+### I further asked Codex to create a schema/proforma for me to write DECISIONS.md: 
+
+So the rubric wants to see decisions documented as we make them, not all written up at the end in one go. So, let's start that work now since its still the very beginning of the project. 
+
+As you can see I have already DECISIONS.md at the repo root.
+
+I want 10 stub entries in there, D-01 through D-10, that we'll fill in progressively as we go through each phase, maybe I’ll create more if required
+
+For the format, keep it consistent for each entry. A heading like ## D-NN <Decision Title> then short bold sections for:
+
+Context (why this decision needs to be made)
+Considered (the alternatives we looked at)
+Choice (what we picked)
+Reasoning (why we picked it over the others)
+Trade-off accepted (what we're explicitly giving up)
+If I had more time / future work (the future work or v2 or something).
+
+Leave all of them empty / todo placeholders for now as I am going to fill it. 
+
+But fill in title for the first three. D-01 is the compute target, D-02 is the web framework, D-03 is the vector store
+
 ## Phase 3: The deployable skeleton
+
+### Creating FastAPI Skeleton: 
+Okay soo now we actually start writing code, we are starting with Phase 3
+
+The goal for this prompt is just the skeleton of the API. It should be production-shaped, but the actual RAG logic is stubbed out for now. 
+
+
+
+So the whole point is that we want something we can deploy to Azure now and try to prove that pipeline works before we get into the clever retrieval and generation stuff, altogether we are doing this now than later as it is much better to debug small codebase than a huge one. 
+
+Set up a FastAPI app under app/ with a sensible module split
+
+The factory and lifespan handler live in app/main.py.
+
+Config goes in app/config.py using pydantic-settings, loading from .env. And I want it to fail fast with a clear error if a required variable is missing, silent fallback to defaults is exactly the kind of thing that bites you in production so please don't do that.
+
+Health endpoints go in app/api/health.py, I want two of them  /healthz should always return 200 quickly and synchronously, and it should never call Azure OpenAI. This is what the platform's load balancer hits to check if the container is alive, so if OpenAI is having a issue then I don't want that to take down our health check too! 
+
+/readyz on the other hand should actually call Azure OpenAI with a two second timeout just to confirm the upstream is actually reachable.
+
+The query endpoint goes in app/api/query.py as POST /query. For now it returns hardcoded mock JSON, but I want real Pydantic models for the request and response so the contract is solid even though the data is fake.
+
+The models I want are QueryRequest with question: str and an optional top_k: int | None
+
+Then I want Citation with file_path, source typed as Literal["opengov", "madetech"], chunk_idx, and snippet
+
+
+Lastly the QueryResponse with answer, a list of citations, and retrieval_scores.
+
+The stub /query should just return something like {"answer": "Stub for Later phase Blah blah"citations": [], "retrieval_scores": null} so we have something real to curl once it's deployed
+
+Also wire up exception handlers. Pydantic validation errors come back as 422 with the field details, HTTP exceptions pass through cleanly, and anything uncaught becomes a 500 with the traceback logged but nothing internal leaked in the response body
+
+Skip auth, CORS, rate limiting, and observability for now, all of that comes in later phases
+Once it's done, run it locally with uvicorn and curl both endpoints. Show me what came back
+
+### Containerizing the App: 
 
