@@ -16,7 +16,7 @@ Employees need reliable answers over 32 HR policy documents that come from two d
 
 ### Success Criteria
 
-- [ ] `POST /query` runs locally and in Azure Container Apps.
+- [x] `POST /query` runs locally and in Azure Container Apps.
 - [ ] Answers cite the retrieved policy chunks used to support the response.
 - [ ] Retrieval uses hybrid dense + lexical search: FAISS plus BM25 fused with Reciprocal Rank Fusion, `k=60`.
 - [ ] Ingestion handles markdown and PDF corpus files while skipping `opengov-handbook-consolidated.pdf`.
@@ -138,8 +138,8 @@ Employees need reliable answers over 32 HR policy documents that come from two d
 - [x] Add Pydantic request/response/error models for `POST /query`.
 - [x] Add a stub implementation that returns a clearly marked non-RAG response.
 - [x] Add Dockerfile and local run command.
-- [ ] Verify local container startup and `POST /query`.
-- [ ] Prepare Azure Container Apps stub deployment path.
+- [x] Verify local container startup and `POST /query`.
+- [x] Prepare Azure Container Apps stub deployment path.
 
 ### Phase 4: Loading The Corpus
 
@@ -212,11 +212,11 @@ Employees need reliable answers over 32 HR policy documents that come from two d
 
 ## 5. Deployment Checklist
 
-- [ ] Docker image builds locally.
-- [ ] Container runs locally and serves `POST /query`.
+- [x] Docker image builds locally.
+- [x] Container runs locally and serves `POST /query`.
 - [ ] Retrieval artifacts exist locally and in Azure Blob Storage.
-- [ ] Azure Container Apps environment and app are configured.
-- [ ] Azure OpenAI key is configured as a Container Apps secret.
+- [x] Azure Container Apps environment and app are configured.
+- [x] Azure OpenAI key is configured as a Container Apps secret.
 - [ ] Blob access uses `DefaultAzureCredential`: local `az login` for development and managed identity in Azure.
 - [ ] Deployed API returns `{ "answer": "...", "citations": [...] }`.
 - [ ] README includes deployed endpoint URL and verification evidence.

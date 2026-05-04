@@ -211,3 +211,33 @@ Once it's done, run it locally with uvicorn and curl both endpoints. Show me wha
 
 ### Containerizing the App: 
 
+Okay so now we actually try to deploy this thing.
+
+The reason I want to do the whole deployment part now, with just a stub and not even real RAG yet, is that honestly the deployment is where most projects burn hours unexpectedly. ACR auth issues, wrong CLI flag names, containers failing to start with no logs, ingress not configured properly
+
+
+So that’s the reason why I'd much rather discover all that now with a small FastAPI app than at the end moment when we have actual RAG to debug on top of it.
+
+Write deploy/deploy-stub.sh as a bash script that really sort of makes sure whatever's missing and deploys the app. It should read the OpenAI key from .env.
+
+For the Azure resources:
+
+the resource group is rg-rag-interview-mehul
+region is swedencentral.
+
+
+Call the Azure Container Registry acrragintvwmehul, but be aware ACR names have to be globally unique so adjust if it collides. The Container Apps environment is cae-rag-interview and the app itself is hr-rag-stub.
+
+The script should be safe to run more than once. So just create the ACR if it doesn't exist (Basic SKU is more than fine, admin-enabled is also fine for v1), and use az acr build to have the registry build the image directly from source, that way I don't have to build and push from my laptop. Create the Container Apps environment if it doesn't exist either.
+
+Then create or update the Container App itself. Half a CPU, 1 GiB memory, scale between one and three replicas, external ingress on port 8000. Also most importantly, the OpenAI key really needs to go in as a Container Apps secret, not as a plain environment variable whatsoever. The other config like endpoint, API version, deployment names, those can be plain env vars which I think should be fine.
+
+One thing before you write the actual az containerapp create command. I want you to verify against the latest Microsoft docs that the flag names you're using are current.
+
+As per my google search these have changed across CLI versions, things like --secrets versus --secret-name, the way registry identity is specified, the ingress flags, and once again maybe your training will be old soo lookup the docs. Also just cite the docs URL you used as a comment at the top of the script.
+
+Once the deploy succeeds, fetch the app's FQDN and curl /healthz against it. If it returns 200, echo the URL clearly so I can just simply copy paste it.
+
+And lastly finish the script with a comment block listing what it explicitly does not set up for i.e. things like custom domains, monitoring, autoscaling etc. That way the scope is honest and we know what's left for later phases.
+
+Also by the way I forgot to tell, AZURE_ACCESS.md has the Azure Access details, my account email ID is upasemehul@gmail.com
