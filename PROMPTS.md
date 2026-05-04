@@ -60,4 +60,19 @@ Docker Desktop is running and GitHub Desktop for commits/pushes I rarely use git
 Acknowledge you've read this & you are ready or not, also wether you understand what I am trying to make. Lastly don’t summarize this back to me.
 
 
-### Explained Codex the Phases and gave some more instructions: 
+### Explained Codex the roughly planned Phases and gave some more instructions: 
+
+Okay below is the rough list of phases I have planned, I expect you to do all the necessary checks, tests, verifications before marking each phase as complete as once a phase is complete I will push the changes : 
+
+1. Phase 1: Setup & Azure access (Which I have completed)
+2. Phase 2:Repo scaffolding & SDK exploration (we are starting from here)
+3. Phase 3: The deployable skeleton (stub on Azure) 
+4. Phase 4: Loading the corpus 
+5. Phase 5: Chunking the documents 
+6. Phase 6: Embeddings & the FAISS index 
+7. Phase 7: Retrieval (dense + lexical, fused) 
+8. Phase 8: Generation, citations, prompt 
+9. Phase 9: Out-of-corpus & disagreement handling 
+10. Phase 10: The evaluation harness 
+11. Phase 11: Real deployment with secrets 
+12. Phase 12: Observability, polish, Loom through
