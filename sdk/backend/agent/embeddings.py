@@ -2,8 +2,8 @@
 
 Environment variables (checked in order):
   - EMBEDDINGS_MODEL_ENDPOINT / AZURE_OPENAI_ENDPOINT
-  - EMBEDDINGS_MODEL_NAME     / AZURE_OPENAI_EMBED_MODEL
-  - EMBEDDINGS_MODEL_API_KEY  / AZURE_OPENAI_API_KEY
+  - EMBEDDINGS_MODEL_NAME     / AZURE_OPENAI_EMBEDDING_DEPLOYMENT
+  - EMBEDDINGS_MODEL_API_KEY  / AZURE_OPENAI_KEY
   - EMBEDDINGS_API_VERSION    (optional, default 2023-05-15)
 """
 
@@ -26,8 +26,8 @@ def azure_embed_text(text: str) -> List[float]:
     if raw_endpoint and "/openai/deployments/" in raw_endpoint:
         endpoint = raw_endpoint.split("/openai/deployments/")[0]
 
-    deployment = os.getenv("EMBEDDINGS_MODEL_NAME") or os.getenv("AZURE_OPENAI_EMBED_MODEL")
-    api_key = os.getenv("AZURE_OPENAI_API_KEY") or os.getenv("EMBEDDINGS_MODEL_API_KEY")
+    deployment = os.getenv("EMBEDDINGS_MODEL_NAME") or os.getenv("AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
+    api_key = os.getenv("AZURE_OPENAI_KEY") or os.getenv("EMBEDDINGS_MODEL_API_KEY")
     api_version = os.getenv("EMBEDDINGS_API_VERSION") or "2023-05-15"
 
     if not endpoint or not deployment or not api_key:

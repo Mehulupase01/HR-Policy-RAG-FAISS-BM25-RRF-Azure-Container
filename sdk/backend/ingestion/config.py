@@ -15,11 +15,11 @@ if _ENV_PATH.exists():
 
 @dataclass
 class IngestionConfig:
-    blob_connection_string: str
+    azure_storage_account_url: str
     blob_container_name: str
-    qdrant_url: str
-    qdrant_api_key: str | None
-    qdrant_collection_name: str
+    faiss_index_blob_name: str
+    chunk_metadata_blob_name: str
+    bm25_blob_name: str
     embeddings_model_name: str
     embeddings_endpoint: str | None
     embeddings_api_key: str | None
@@ -33,14 +33,15 @@ def load_ingestion_config() -> IngestionConfig:
         embeddings_endpoint = raw_endpoint.split("/openai/deployments/")[0]
 
     return IngestionConfig(
-        blob_connection_string=_require_env("CONNECTION_STRING", "BLOB_CONNECTION_STRING"),
-        blob_container_name=_require_env("BLOB_CONTAINER_NAME"),
-        qdrant_url=os.getenv("QDRANT_URL", "http://localhost:6333"),
-        qdrant_api_key=os.getenv("QDRANT_API_KEY"),
-        qdrant_collection_name=os.getenv("QDRANT_COLLECTION_NAME", "documents"),
-        embeddings_model_name=os.getenv("EMBEDDINGS_MODEL_NAME", "text-embedding-3-large"),
+        azure_storage_account_url=_require_env("AZURE_STORAGE_ACCOUNT_URL"),
+        blob_container_name=_require_env("AZURE_BLOB_CONTAINER_NAME"),
+        faiss_index_blob_name=os.getenv("FAISS_INDEX_BLOB_NAME", "hr-policy.faiss.index"),
+        chunk_metadata_blob_name=os.getenv("CHUNK_METADATA_BLOB_NAME", "hr-policy-chunks.parquet"),
+        bm25_blob_name=os.getenv("BM25_BLOB_NAME", "bm25.pkl"),
+        embeddings_model_name=os.getenv("EMBEDDINGS_MODEL_NAME")
+        or os.getenv("AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "text-embedding-3-large"),
         embeddings_endpoint=embeddings_endpoint,
-        embeddings_api_key=os.getenv("EMBEDDINGS_MODEL_API_KEY") or os.getenv("AZURE_OPENAI_API_KEY"),
+        embeddings_api_key=os.getenv("EMBEDDINGS_MODEL_API_KEY") or os.getenv("AZURE_OPENAI_KEY"),
         embeddings_api_version=os.getenv("EMBEDDINGS_API_VERSION", "2023-05-15"),
     )
 

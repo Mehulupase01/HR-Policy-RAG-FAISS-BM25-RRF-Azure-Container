@@ -3,7 +3,7 @@
 Environment variables:
   - AZURE_OPENAI_ENDPOINT
   - AZURE_OPENAI_CHAT_DEPLOYMENT
-  - AZURE_OPENAI_API_KEY
+  - AZURE_OPENAI_KEY
   - AZURE_OPENAI_API_VERSION (optional, default 2024-05-01-preview)
 """
 
@@ -45,7 +45,7 @@ def azure_chat_completion(
         endpoint = raw_endpoint.split("/openai/")[0]
 
     deployment = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT")
-    api_key = os.getenv("AZURE_OPENAI_API_KEY")
+    api_key = os.getenv("AZURE_OPENAI_KEY")
     api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-05-01-preview")
 
     if not endpoint or not deployment or not api_key:

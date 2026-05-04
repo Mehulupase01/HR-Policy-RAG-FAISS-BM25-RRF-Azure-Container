@@ -78,7 +78,7 @@ Okay below is the rough list of phases I have planned, I expect you to do all th
 12. Phase 12: Observability, polish, Loom through
 
 
-### Phase 2: Repo scaffolding & SDK exploration
+## Phase 2: Repo scaffolding & SDK exploration
 
 **Context:** Here I sort of needed to understand what the SDK considers core abstractions vs. extension points before building on top of it. 
 
@@ -111,3 +111,45 @@ Please don't write any code yet. I really want the architectural read first, onc
 
 
 ### I further asked Codex to fill in the erd-template: 
+
+Okay thanks, your analysis looks okay ! Thanks 
+
+So the SDK ships with a template that they expect us to fill in. Go and open sdk/planning/erd-template.md
+
+Now I want you to fill this in with the actual project architecture, not some generic one. Use the decisions we've made in the project brief and what you found in the SDK exploration earlier.
+
+For the diagrams, include a system architecture diagram as a mermaid flowchart showing the request path from client through FastAPI to the retriever, then to the generator, and back. If I am not wrong there are already diagrams in the erd template, make similar to them or better ones. 
+
+Then include a sequence diagram for ingestion which goes load then chunk then embed then index then upload to Blob.
+
+And another sequence diagram for a query at runtime.
+
+For the vector-store schema, spell out what we'll be writing to disk. So that's chunk_id, source, file_path, chunk_idx, text, embedding, and any metadata fields you think we need.
+
+Also list the environment variables the app needs to run, I want this documented properly.
+
+And then document the API contract for POST /query with example request and response bodies, plus the error codes we'll return.
+
+One thing, please stay grounded in what we've actually decided. Don't invent infrastructure I haven't asked for, so no Redis, no Postgres, no Functions runtime sneaking back in. Please stick to what's in the brief.
+
+
+### Codex made some mistake, I pointed out the mistakes: 
+
+There are a few things I want you to fix before we move on.
+
+First, the env var name. You've used AZURE_OPENAI_API_KEY in the ERD but our .env file from Phase 1 has AZURE_OPENAI_KEY. These need to match otherwise the app will just fail to read the key at startup. Go and make sure the ERD, the .env.example, and wherever we read config in the app all use the same name.
+
+Second, in the parquet schema you have both a source field and a handbook field and they're basically doing the same thing. The standard one is source, that's what the disagreement detector is going to read, with values "opengov" or "madetech". So just drop handbook, we don't need both.
+
+Third, for BM25 you've written that it "can be rebuilt from the parquet text field at startup" and while that's technically true, but that's not what we're doing. 
+
+
+We're persisting bm25.pkl to Blob alongside the FAISS index and parquet, and loading it on startup and to be honest rebuilding at startup is like quite slower and plus it's also the kind of thing that can cause tokenization drift between index time and query time which is exactly the bug we're trying to avoid. 
+
+
+Update the ERD to reflect that we persist and load bm25.pkl.
+
+And lastly, remove AZURE_STORAGE_CONNECTION_STRING from the env vars. I know you've listed it as a local dev convenience but we're using DefaultAzureCredential which handles both local development via az login and production via managed identity, no connection string needed, also I think it does cause a security snag as well.
+
+## Phase 3: The deployable skeleton
+
