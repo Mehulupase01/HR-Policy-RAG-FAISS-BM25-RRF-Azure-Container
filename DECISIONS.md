@@ -101,76 +101,81 @@ TODO
 **If I had more time / future work**
 TODO
 
-## D-06 TODO
+## D-06 Markdown chunking strategy
 
 **Context**
-TODO
+Markdown documents have explicit heading hierarchy. We want chunks that
+respect document structure.
 
 **Considered**
-TODO
+Fixed-size / sentence-level / paragraph-level / header-aware (H2/H3)
 
 **Choice**
-TODO
+Header-aware on H2/H3 boundaries. Each chunk gets a breadcrumb prepended for embedding.
 
 **Reasoning**
-TODO
+If we see Headings carry semantic meaning and a chunk's section title is information that should be in its embedding and also Header-aware splits also aligns with how humans naturally find info in these kind of textual content
 
 **Trade-off accepted**
-TODO
+Some short H2 sections attach to other H2 sections and some long paragrahs pack within
 
 **If I had more time / future work**
-TODO
+I would've tried implementing semantic chunking, embedding adjacent paragraph pairs and split where there's a drop in similarity.
 
-## D-07 TODO
+## D-07 PDF chunking strategy
 
 **Context**
-TODO
+PDFs lose explicit heading structure when text is extracted
 
 **Considered**
-TODO
+Font-size based heading detection / paragraph-pack / fixed-size with overlap
 
 **Choice**
-TODO
+Paragraph-pack with form-feed (\f) as a soft boundary
 
 **Reasoning**
-TODO
+Our PDFs are pandoc/typst conversions thus have clean text with intact paragraph breaks, no complex tables Hence Paragraph-pack is simpler and as effective as font-size detection on this content
 
 **Trade-off accepted**
-TODO
+No breadcrumbs for PDF chunks and page markers compensate
 
 **If I had more time / future work**
-TODO
+I could have used pdfplumber, which has structure analysis to detect heading-like elements (large/bold text starting a section)
 
-## D-08 TODO
+## D-08 Chunk size + overlap
 
 **Context**
-TODO
+Trade-off between context-per-chunk and retrieval precision
 
 **Considered**
-TODO
+400/50 OR 800/100 OR 1200/150 (But these can be many values)
 
 **Choice**
-TODO
+800 tokens max, 100 token overlap
 
 **Reasoning**
-TODO
+So we do the math, 800 tokens almost fits a complete policy paragraph in this corpus and the 100-token overlap (~12.5%) covers boundary cases and lastly  the top-4 retrieval gives gpt-4o  roughly 3,200 tokens (800*4) of context which is plenty of headroom in the 128k window.
 
 **Trade-off accepted**
-TODO
+Larger chunks might marginally improve answer quality, but this needs test based verification.
 
 **If I had more time / future work**
-TODO
+If I had more time then I could've runned tests across
+{400/50, 600/75, 800/100, 1000/125}, report the trade-off curve soo the decision is based on precision than assumption
 
-## D-09 TODO
+## D-09 Tiny + consolidated file handling
 
 **Context**
-TODO
+Two corpus contrasts oen very short files (a few hundred bytes), and the other a consolidated PDF that duplicates the markdown splits
 
 **Considered**
-TODO
+For Tiny: Split anyway (creates useless single chunks) / keep whole
+For Consolidated: Ingest (creates duplicates) / skip / ingest
+with markdown preference
 
 **Choice**
-TODO
+For Tiny: which mostly are <400 tokens, in that case we make a whole file chunk regardless of structure
+For Consolidated: I just hardcoded in the loader to skip the PDF
 
 **Reasoning**
 TODO

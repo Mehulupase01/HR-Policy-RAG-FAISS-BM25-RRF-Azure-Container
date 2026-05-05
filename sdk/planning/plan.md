@@ -166,11 +166,11 @@ Employees need reliable answers over 32 HR policy documents that come from two d
 
 ### Phase 7: Retrieval
 
-- [ ] Implement FAISS dense search.
-- [ ] Implement BM25 lexical search.
-- [ ] Fuse dense and lexical rankings with RRF, `k=60`.
-- [ ] Implement the SDK `Retriever` protocol.
-- [ ] Add retrieval tests using real artifacts when available.
+- [x] Implement FAISS dense search.
+- [x] Implement BM25 lexical search.
+- [x] Fuse dense and lexical rankings with RRF, `k=60`.
+- [ ] Implement the SDK `Retriever` protocol adapter for generation.
+- [x] Add retrieval tests using real artifacts when available.
 
 ### Phase 8: Generation, Citations, And Prompt
 
