@@ -291,7 +291,7 @@ Also, we are not doing the Oout of Corpus detector and disagreement detector in 
 
 ### Asked Codex to Deploy the real app with secrets and managed identity
 
->I asked Codex to provision the managed identity
+>I asked Codex to provision the managed identity, and then assign it the role to read index from blob and then it deploys the real app with OpenAI key as an encrypted secret rather 
 
 Phase 11 as deferred/blocked by Azure RBAC permissions, not failed architecture. The important pieces are still useful and correct:
 
