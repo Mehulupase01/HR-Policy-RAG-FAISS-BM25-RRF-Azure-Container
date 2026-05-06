@@ -16,6 +16,8 @@ from app.api.health import router as health_router
 from app.api.query import router as query_router
 from app.config import get_settings
 from app.generation.answerer import Answerer
+from app.guardrails.disagreement import DisagreementDetector
+from app.guardrails.out_of_corpus import OutOfCorpusDetector
 from app.ingest.blob_store import BlobIndexStore, INDEX_FILES
 from app.ingest.embedder import Embedder
 from app.retrieval.retriever import HybridRetriever
@@ -58,11 +60,17 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         deployment_name=settings.azure_openai_embedding_deployment,
     )
     app.state.embedder = embedder
-    app.state.retriever = HybridRetriever.from_index_dir(INDEX_DIR, embedder)
+    retriever = HybridRetriever.from_index_dir(INDEX_DIR, embedder)
+    app.state.retriever = retriever
     app.state.answerer = Answerer(
         client=openai_client,
         deployment_name=settings.azure_openai_chat_deployment,
     )
+    app.state.out_of_corpus_detector = OutOfCorpusDetector(
+        client=openai_client,
+        deployment_name=settings.azure_openai_chat_deployment,
+    )
+    app.state.disagreement_detector = DisagreementDetector(retriever)
     app.state.index_dir = INDEX_DIR
     yield
 

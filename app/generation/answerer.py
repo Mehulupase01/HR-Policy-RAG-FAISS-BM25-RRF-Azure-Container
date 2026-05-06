@@ -8,7 +8,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from app.generation.models import AnsweredQuery
-from app.generation.prompts import SYSTEM_PROMPT_V1
+from app.generation.prompts import DISAGREEMENT_INSTRUCTION, SYSTEM_PROMPT_V1
 from app.models import Citation
 from app.retrieval.models import RetrievedChunk
 
@@ -40,6 +40,7 @@ class Answerer:
         question: str,
         retrieved: list[RetrievedChunk],
         present_top_k: int = 4,
+        surface_disagreement: bool = False,
     ) -> AnsweredQuery:
         if not question.strip():
             raise ValueError("question is required")
@@ -48,6 +49,9 @@ class Answerer:
 
         presented = retrieved[:present_top_k]
         user_message = _build_user_message(question, presented)
+        system_prompt = SYSTEM_PROMPT_V1
+        if surface_disagreement:
+            system_prompt = f"{DISAGREEMENT_INSTRUCTION}\n\n{SYSTEM_PROMPT_V1}"
 
         # Microsoft docs confirm JSON mode via response_format={"type": "json_object"}
         # and require "JSON" in the messages. The REST reference lists json_object
@@ -58,7 +62,7 @@ class Answerer:
         response = self.client.chat.completions.create(
             model=self.deployment_name,
             messages=[
-                {"role": "system", "content": SYSTEM_PROMPT_V1},
+                {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message},
             ],
             response_format={"type": "json_object"},

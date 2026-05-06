@@ -6,7 +6,9 @@ from fastapi.testclient import TestClient
 from app.api.query import router as query_router
 from app.generation.answerer import AnswerParseError
 from app.generation.models import AnsweredQuery
-from app.generation.prompts import REFUSAL_ANSWER
+from app.generation.prompts import LIMITED_INFORMATION_PREFIX, REFUSAL_ANSWER
+from app.guardrails.disagreement import DisagreementInfo
+from app.guardrails.out_of_corpus import OutOfCorpusDecision
 from app.models import Citation
 from app.retrieval.models import RetrievedChunk
 
@@ -24,25 +26,69 @@ class FakeRetriever:
 class FakeAnswerer:
     def __init__(self, result: AnsweredQuery | Exception) -> None:
         self.result = result
-        self.calls: list[tuple[str, list[RetrievedChunk], int]] = []
+        self.calls: list[tuple[str, list[RetrievedChunk], int, bool]] = []
 
     def answer(
         self,
         question: str,
         retrieved: list[RetrievedChunk],
         present_top_k: int = 4,
+        surface_disagreement: bool = False,
     ) -> AnsweredQuery:
-        self.calls.append((question, retrieved, present_top_k))
+        self.calls.append((question, retrieved, present_top_k, surface_disagreement))
         if isinstance(self.result, Exception):
             raise self.result
         return self.result
 
 
-def make_app(retriever: FakeRetriever, answerer: FakeAnswerer) -> FastAPI:
+class FakeOutOfCorpusDetector:
+    def __init__(self, decision: OutOfCorpusDecision | None = None) -> None:
+        self.decision = decision or OutOfCorpusDecision(
+            score_signal_refuse=False,
+            judge_signal_refuse=False,
+            refuse=False,
+            signals_disagree=False,
+            max_rrf_score=0.031,
+        )
+        self.calls: list[tuple[str, list[RetrievedChunk], int]] = []
+
+    def decide(
+        self,
+        question: str,
+        retrieved: list[RetrievedChunk],
+        *,
+        present_top_k: int = 4,
+    ) -> OutOfCorpusDecision:
+        self.calls.append((question, retrieved, present_top_k))
+        return self.decision
+
+
+class FakeDisagreementDetector:
+    def __init__(self, info: DisagreementInfo | None = None) -> None:
+        self.info = info or DisagreementInfo(
+            multi_source=False,
+            topic_overlap_score=None,
+            surface_disagreement=False,
+        )
+        self.calls: list[list[RetrievedChunk]] = []
+
+    def detect(self, retrieved: list[RetrievedChunk]) -> DisagreementInfo:
+        self.calls.append(retrieved)
+        return self.info
+
+
+def make_app(
+    retriever: FakeRetriever,
+    answerer: FakeAnswerer,
+    out_of_corpus_detector: FakeOutOfCorpusDetector | None = None,
+    disagreement_detector: FakeDisagreementDetector | None = None,
+) -> FastAPI:
     app = FastAPI()
     app.include_router(query_router)
     app.state.retriever = retriever
     app.state.answerer = answerer
+    app.state.out_of_corpus_detector = out_of_corpus_detector or FakeOutOfCorpusDetector()
+    app.state.disagreement_detector = disagreement_detector or FakeDisagreementDetector()
     return app
 
 
@@ -87,7 +133,7 @@ def test_query_returns_answer_and_citations() -> None:
         "retrieval_scores": [0.031, 0.029],
     }
     assert retriever.calls == [("How many sick days do I get?", 8)]
-    assert answerer.calls == [("How many sick days do I get?", retrieved, 4)]
+    assert answerer.calls == [("How many sick days do I get?", retrieved, 4, False)]
 
 
 def test_query_empty_retrieval_returns_refusal() -> None:
@@ -104,6 +150,105 @@ def test_query_empty_retrieval_returns_refusal() -> None:
         "retrieval_scores": [],
     }
     assert answerer.calls == []
+
+
+def test_query_out_of_corpus_refusal_short_circuits_answerer() -> None:
+    retrieved = [chunk()]
+    retriever = FakeRetriever(retrieved)
+    answerer = FakeAnswerer(AnsweredQuery(answer="unused", citations=[]))
+    out_of_corpus_detector = FakeOutOfCorpusDetector(
+        OutOfCorpusDecision(
+            score_signal_refuse=True,
+            judge_signal_refuse=True,
+            refuse=True,
+            signals_disagree=False,
+            max_rrf_score=0.01,
+        )
+    )
+    client = TestClient(make_app(retriever, answerer, out_of_corpus_detector))
+
+    response = client.post("/query", json={"question": "What is the stock price?"})
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "answer": REFUSAL_ANSWER,
+        "citations": [],
+        "retrieval_scores": [0.031],
+    }
+    assert answerer.calls == []
+
+
+def test_query_hedges_when_out_of_corpus_signals_disagree() -> None:
+    retrieved = [chunk()]
+    retriever = FakeRetriever(retrieved)
+    answerer = FakeAnswerer(
+        AnsweredQuery(answer="The policy mentions sick leave.", citations=[])
+    )
+    out_of_corpus_detector = FakeOutOfCorpusDetector(
+        OutOfCorpusDecision(
+            score_signal_refuse=True,
+            judge_signal_refuse=False,
+            refuse=False,
+            signals_disagree=True,
+            max_rrf_score=0.01,
+        )
+    )
+    client = TestClient(make_app(retriever, answerer, out_of_corpus_detector))
+
+    response = client.post("/query", json={"question": "Tell me about sick leave."})
+
+    assert response.status_code == 200
+    assert response.json()["answer"].startswith(LIMITED_INFORMATION_PREFIX)
+
+
+def test_query_does_not_hedge_exact_refusal() -> None:
+    retrieved = [chunk()]
+    retriever = FakeRetriever(retrieved)
+    answerer = FakeAnswerer(
+        AnsweredQuery(answer=REFUSAL_ANSWER, citations=[])
+    )
+    out_of_corpus_detector = FakeOutOfCorpusDetector(
+        OutOfCorpusDecision(
+            score_signal_refuse=False,
+            judge_signal_refuse=True,
+            refuse=False,
+            signals_disagree=True,
+            max_rrf_score=0.03,
+        )
+    )
+    client = TestClient(make_app(retriever, answerer, out_of_corpus_detector))
+
+    response = client.post("/query", json={"question": "What is the stock price?"})
+
+    assert response.status_code == 200
+    assert response.json()["answer"] == REFUSAL_ANSWER
+
+
+def test_query_passes_disagreement_flag_to_answerer() -> None:
+    retrieved = [chunk()]
+    retriever = FakeRetriever(retrieved)
+    answerer = FakeAnswerer(
+        AnsweredQuery(answer="Per OpenGov... Per Made Tech...", citations=[])
+    )
+    disagreement_detector = FakeDisagreementDetector(
+        DisagreementInfo(
+            multi_source=True,
+            topic_overlap_score=0.9,
+            surface_disagreement=True,
+        )
+    )
+    client = TestClient(
+        make_app(
+            retriever,
+            answerer,
+            disagreement_detector=disagreement_detector,
+        )
+    )
+
+    response = client.post("/query", json={"question": "Compare sick leave."})
+
+    assert response.status_code == 200
+    assert answerer.calls == [("Compare sick leave.", retrieved, 4, True)]
 
 
 def test_query_answer_parse_error_returns_502() -> None:

@@ -118,6 +118,23 @@ def test_rrf_combines_dense_and_bm25_pools() -> None:
     assert {result.chunk_id for result in results} == {"chunk-0", "chunk-1"}
 
 
+def test_get_embedding_returns_chunk_embedding_by_id() -> None:
+    query_embedding = np.zeros(EMBEDDING_DIMENSIONS, dtype=np.float32)
+    query_embedding[0] = 1.0
+    retriever = HybridRetriever(
+        faiss_index=FakeFaissIndex(),  # type: ignore[arg-type]
+        bm25_index=FakeBm25(),
+        chunks_dataframe=synthetic_dataframe(),
+        embedder=FakeEmbedder(query_embedding),
+    )
+
+    embedding = retriever.get_embedding("chunk-1")
+
+    assert embedding.dtype == np.float32
+    assert embedding.shape == (EMBEDDING_DIMENSIONS,)
+    assert embedding[1] == 1.0
+
+
 def test_verbatim_phrase_returns_known_chunk_at_rank_1(real_retriever: HybridRetriever) -> None:
     results = real_retriever.retrieve("organizational Google Suite account", top_k=8)
 

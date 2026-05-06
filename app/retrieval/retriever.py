@@ -47,6 +47,10 @@ class HybridRetriever:
         self._normalized_embeddings = _normalized_embeddings_from_dataframe(
             self.chunks_dataframe
         )
+        self._row_by_chunk_id = {
+            str(row["chunk_id"]): idx
+            for idx, row in self.chunks_dataframe.iterrows()
+        }
 
     @classmethod
     def from_index_dir(cls, index_dir: Path | str, embedder: Any) -> "HybridRetriever":
@@ -93,6 +97,15 @@ class HybridRetriever:
             )
             for row_idx, rrf_score in fused[:top_k]
         ]
+
+    def get_embedding(self, chunk_id: str) -> np.ndarray:
+        row_idx = self._row_by_chunk_id.get(chunk_id)
+        if row_idx is None:
+            raise KeyError(f"Unknown chunk_id: {chunk_id}")
+        return np.asarray(
+            self.chunks_dataframe.iloc[row_idx]["embedding"],
+            dtype=np.float32,
+        )
 
     def _dense_search(self, query_embedding: np.ndarray) -> tuple[dict[int, int], dict[int, float]]:
         pool = min(self.dense_pool, len(self.chunks_dataframe))

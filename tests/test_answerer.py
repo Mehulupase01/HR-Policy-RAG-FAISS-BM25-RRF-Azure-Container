@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import pytest
 
 from app.generation.answerer import AnswerParseError, Answerer
+from app.generation.prompts import DISAGREEMENT_INSTRUCTION
 from app.generation.prompts import SYSTEM_PROMPT_V1
 from app.retrieval.models import RetrievedChunk
 
@@ -89,6 +90,25 @@ def test_refusal_returns_empty_citations() -> None:
 
     assert result.answer == refusal
     assert result.citations == []
+
+
+def test_surface_disagreement_prepends_disagreement_instruction() -> None:
+    client = FakeClient(
+        '{"answer":"Per OpenGov... Per Made Tech...",'
+        '"citation_keys":["sick-leave-policy.md#3"]}'
+    )
+    answerer = Answerer(client=client, deployment_name="gpt-4o")
+
+    answerer.answer(
+        "How do sick leave policies differ?",
+        [retrieved_chunk()],
+        surface_disagreement=True,
+    )
+
+    assert client.completions.kwargs is not None
+    messages = client.completions.kwargs["messages"]
+    assert isinstance(messages, list)
+    assert messages[0]["content"].startswith(DISAGREEMENT_INSTRUCTION)
 
 
 def test_hallucinated_citation_is_dropped(caplog: pytest.LogCaptureFixture) -> None:

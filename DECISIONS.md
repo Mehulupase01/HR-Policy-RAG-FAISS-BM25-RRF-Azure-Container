@@ -228,3 +228,25 @@ Very niche but possible edge cases where the right answer could be at rank 5–8
 
 **If I had more time / future work**
 Best way could be experimenting with different top_k values. 
+
+
+
+## D-12 Citation Format
+
+**Context**
+We need to cite every claim to its source
+
+**Considered**
+Inline [1] [2] / structured citation list with file_path + chunk_idx; URL + offset 
+
+**Choice**
+Structured citation list with file_path + chunk_idx; URL + offset 
+
+**Reasoning**
+its actually UI-friendly if we ever make an UI plus additionally its verifiable so we basically check every cited key exists in retrieved chunks before returning soo this drops fabricated citations silently
+
+**Trade-off accepted**
+a claim sourced from one sentence is cited as the whole chunk.
+
+**If I had more time / future work**
+Best way could be experimenting with different top_k values. 

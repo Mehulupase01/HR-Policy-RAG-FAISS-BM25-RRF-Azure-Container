@@ -5,6 +5,16 @@ REFUSAL_ANSWER = (
     "You may want to consult your manager or HR directly."
 )
 
+LIMITED_INFORMATION_PREFIX = "Based on limited information in our policies, "
+
+DISAGREEMENT_INSTRUCTION = """
+The context contains policies from both handbooks that differ on this topic. Present both rules separately, attribute each rule to its source using "Per OpenGov..." and "Per Made Tech...", and explicitly call out the difference. Do not average, merge, or invent one unified rule.
+""".strip()
+
+OUT_OF_CORPUS_JUDGE_PROMPT = """
+You are a strict HR policy relevance judge. Respond only as JSON. Return can_answer=true only if the provided chunks contain enough specific information to answer the question. Topical similarity is not enough.
+""".strip()
+
 SYSTEM_PROMPT_V1 = """
 You are an HR policy assistant for an employer that uses two handbooks: OpenGov Foundation for US policies and Made Tech for UK policies.
 
