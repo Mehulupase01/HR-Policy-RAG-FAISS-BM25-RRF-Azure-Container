@@ -18,14 +18,19 @@ CORPUS_ROOT = Path(__file__).resolve().parents[1] / "corpus"
 
 
 def load_by_name() -> dict[str, RawDocument]:
-    return {document.file_path.name: document for document in CorpusLoader(CORPUS_ROOT).load_all()}
+    return {
+        document.file_path.name: document
+        for document in CorpusLoader(CORPUS_ROOT).load_all()
+    }
 
 
 def test_load_all_returns_expected_document_count() -> None:
     documents = list(CorpusLoader(CORPUS_ROOT).load_all())
 
     assert len(documents) == 31
-    assert "opengov-handbook-consolidated.pdf" not in {doc.file_path.name for doc in documents}
+    assert "opengov-handbook-consolidated.pdf" not in {
+        doc.file_path.name for doc in documents
+    }
     assert all(not document.file_path.is_absolute() for document in documents)
 
 
@@ -59,7 +64,9 @@ def test_unknown_file_raises_unknown_source_error(tmp_path: Path) -> None:
 
 def test_every_loaded_pdf_yields_non_trivial_content() -> None:
     pdf_documents = [
-        document for document in CorpusLoader(CORPUS_ROOT).load_all() if document.format == "pdf"
+        document
+        for document in CorpusLoader(CORPUS_ROOT).load_all()
+        if document.format == "pdf"
     ]
 
     assert len(pdf_documents) == 7

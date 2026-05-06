@@ -24,23 +24,31 @@ logger = logging.getLogger(__name__)
 
 
 def main() -> None:
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
+    )
     load_dotenv()
 
     corpus_root = Path(os.getenv("CORPUS_ROOT", "corpus"))
     output_dir = Path(os.getenv("INDEX_OUTPUT_DIR", "data/index"))
     blob_prefix = os.getenv("INDEX_BLOB_PREFIX", "latest")
 
-    raw_documents = timed("Loading corpus", lambda: list(CorpusLoader(corpus_root).load_all()))
+    raw_documents = timed(
+        "Loading corpus", lambda: list(CorpusLoader(corpus_root).load_all())
+    )
     chunks = timed("Chunking documents", lambda: list(chunk_documents(raw_documents)))
-    logger.info("Prepared %s raw documents and %s chunks", len(raw_documents), len(chunks))
+    logger.info(
+        "Prepared %s raw documents and %s chunks", len(raw_documents), len(chunks)
+    )
 
     embedder = Embedder(
         client=_azure_openai_client_from_env(),
         deployment_name=_required_env("AZURE_OPENAI_EMBEDDING_DEPLOYMENT"),
     )
     embedded_chunks = timed("Embedding chunks", lambda: embedder.embed_chunks(chunks))
-    summary = timed("Building local indexes", lambda: build_indexes(embedded_chunks, output_dir))
+    summary = timed(
+        "Building local indexes", lambda: build_indexes(embedded_chunks, output_dir)
+    )
     logger.info("Index summary: %s", summary)
 
     storage_account_url = os.getenv("BLOB_ACCOUNT_URL")

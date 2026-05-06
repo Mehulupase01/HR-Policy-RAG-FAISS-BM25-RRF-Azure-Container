@@ -115,7 +115,9 @@ def _chunk_markdown(document: RawDocument) -> list[_PreparedChunk]:
         prefix = _markdown_prefix(section.breadcrumb)
         available_body_tokens = max(1, MAX_TOKENS - token_count(prefix))
         section_text = section.text.strip()
-        section_with_breadcrumb = _compose_markdown_text(section.breadcrumb, section_text)
+        section_with_breadcrumb = _compose_markdown_text(
+            section.breadcrumb, section_text
+        )
 
         if token_count(section_with_breadcrumb) <= MAX_TOKENS:
             prepared_chunks.append(
@@ -127,7 +129,9 @@ def _chunk_markdown(document: RawDocument) -> list[_PreparedChunk]:
             )
             continue
 
-        paragraphs = [_TextUnit(text=paragraph) for paragraph in _split_paragraphs(section_text)]
+        paragraphs = [
+            _TextUnit(text=paragraph) for paragraph in _split_paragraphs(section_text)
+        ]
         for packed in _pack_text_units(paragraphs, available_body_tokens):
             prepared_chunks.append(
                 _PreparedChunk(
@@ -207,9 +211,14 @@ def _merge_small_sections(sections: list[_Section]) -> list[_Section]:
 
         if (
             not is_last_section
-            and token_count(_compose_markdown_text(candidate.breadcrumb, candidate.text)) < MIN_TOKENS
+            and token_count(
+                _compose_markdown_text(candidate.breadcrumb, candidate.text)
+            )
+            < MIN_TOKENS
         ):
-            pending_small_texts.append(_compose_markdown_text(section.breadcrumb, section_text))
+            pending_small_texts.append(
+                _compose_markdown_text(section.breadcrumb, section_text)
+            )
             continue
 
         merged_sections.append(candidate)
@@ -245,7 +254,11 @@ def _first_breadcrumb(content: str) -> str | None:
 
 
 def _split_paragraphs(text: str) -> list[str]:
-    return [paragraph.strip() for paragraph in re.split(r"\n\s*\n", text) if paragraph.strip()]
+    return [
+        paragraph.strip()
+        for paragraph in re.split(r"\n\s*\n", text)
+        if paragraph.strip()
+    ]
 
 
 def _pdf_text_units(content: str) -> list[_TextUnit]:
@@ -332,10 +345,14 @@ def _pack_text_units(units: list[_TextUnit], max_body_tokens: int) -> list[_Pack
         current_page_marker = previous_page_marker if overlap_text else unit.page_marker
 
         if token_count(current_text) > max_body_tokens:
-            available_overlap_tokens = max(0, max_body_tokens - token_count(unit_text) - 2)
+            available_overlap_tokens = max(
+                0, max_body_tokens - token_count(unit_text) - 2
+            )
             overlap_text = _tail_tokens(previous_text, available_overlap_tokens)
             current_text = _join_text(overlap_text, unit_text)
-            current_page_marker = previous_page_marker if overlap_text else unit.page_marker
+            current_page_marker = (
+                previous_page_marker if overlap_text else unit.page_marker
+            )
 
         if token_count(current_text) > max_body_tokens:
             current_text = unit_text

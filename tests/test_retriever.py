@@ -2,9 +2,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from types import SimpleNamespace
 
-import faiss
 import numpy as np
 import pandas as pd
 import pytest
@@ -64,7 +62,9 @@ def real_retriever() -> HybridRetriever:
         "AZURE_OPENAI_EMBEDDING_DEPLOYMENT",
     ]
     if any(not os.getenv(name) for name in required_env):
-        pytest.skip("Azure OpenAI environment variables are required for real retrieval tests")
+        pytest.skip(
+            "Azure OpenAI environment variables are required for real retrieval tests"
+        )
 
     client = AzureOpenAI(
         api_key=os.environ["AZURE_OPENAI_KEY"],
@@ -88,7 +88,16 @@ def synthetic_dataframe() -> pd.DataFrame:
     return pd.DataFrame(
         {
             "chunk_id": [f"chunk-{idx}" for idx in range(8)],
-            "source": ["opengov", "madetech", "opengov", "madetech", "opengov", "madetech", "opengov", "madetech"],
+            "source": [
+                "opengov",
+                "madetech",
+                "opengov",
+                "madetech",
+                "opengov",
+                "madetech",
+                "opengov",
+                "madetech",
+            ],
             "file_path": [f"policy-{idx}.md" for idx in range(8)],
             "chunk_idx": list(range(8)),
             "breadcrumb": [None] * 8,
@@ -135,16 +144,23 @@ def test_get_embedding_returns_chunk_embedding_by_id() -> None:
     assert embedding[1] == 1.0
 
 
-def test_verbatim_phrase_returns_known_chunk_at_rank_1(real_retriever: HybridRetriever) -> None:
+def test_verbatim_phrase_returns_known_chunk_at_rank_1(
+    real_retriever: HybridRetriever,
+) -> None:
     results = real_retriever.retrieve("organizational Google Suite account", top_k=8)
 
     assert results[0].file_path == "email-and-password-policy.md"
 
 
-def test_paraphrase_time_off_when_ill_includes_sick_leave(real_retriever: HybridRetriever) -> None:
+def test_paraphrase_time_off_when_ill_includes_sick_leave(
+    real_retriever: HybridRetriever,
+) -> None:
     results = real_retriever.retrieve("time off when ill", top_k=8)
 
-    assert any("sick" in result.file_path.lower() or "sick" in result.text.lower() for result in results)
+    assert any(
+        "sick" in result.file_path.lower() or "sick" in result.text.lower()
+        for result in results
+    )
 
 
 def test_sick_days_query_covers_both_sources(real_retriever: HybridRetriever) -> None:
@@ -161,7 +177,9 @@ def test_sick_days_query_covers_both_sources(real_retriever: HybridRetriever) ->
         pytest.fail(f"Expected both sources in top 8. Actual top 8:\n{formatted}")
 
 
-def test_out_of_corpus_stock_price_has_low_dense_score(real_retriever: HybridRetriever) -> None:
+def test_out_of_corpus_stock_price_has_low_dense_score(
+    real_retriever: HybridRetriever,
+) -> None:
     results = real_retriever.retrieve("What is the company stock price?", top_k=8)
 
     assert max(result.dense_score for result in results) < 0.45

@@ -55,7 +55,9 @@ class OutOfCorpusDetector:
         max_rrf_score = max((chunk.rrf_score for chunk in retrieved), default=0.0)
         score_signal_refuse = max_rrf_score < RRF_REFUSAL_THRESHOLD
         try:
-            judge_can_answer = self._judge_can_answer(question, retrieved[:present_top_k])
+            judge_can_answer = self._judge_can_answer(
+                question, retrieved[:present_top_k]
+            )
         except BadRequestError as exc:
             if not _is_content_filter_error(exc):
                 raise
@@ -94,11 +96,15 @@ class OutOfCorpusDetector:
         )
         content = getattr(response.choices[0].message, "content", None)
         if not content:
-            raise OutOfCorpusJudgeError("Out-of-corpus judge returned an empty response")
+            raise OutOfCorpusJudgeError(
+                "Out-of-corpus judge returned an empty response"
+            )
         try:
             payload = _JudgePayload.model_validate_json(content)
         except ValidationError as exc:
-            raise OutOfCorpusJudgeError("Out-of-corpus judge returned malformed JSON") from exc
+            raise OutOfCorpusJudgeError(
+                "Out-of-corpus judge returned malformed JSON"
+            ) from exc
         return payload.can_answer
 
 

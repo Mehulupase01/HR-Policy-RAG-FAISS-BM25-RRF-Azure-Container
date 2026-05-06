@@ -131,8 +131,14 @@ def test_surface_disagreement_presents_both_sources_when_one_is_lower_ranked() -
         "How do the policies differ?",
         [
             retrieved_chunk(text="OpenGov top chunk."),
-            retrieved_chunk(file_path="calendar-policy.md", chunk_idx=0, text="Another OpenGov chunk."),
-            retrieved_chunk(file_path="meetings-policy.md", chunk_idx=0, text="Third OpenGov chunk."),
+            retrieved_chunk(
+                file_path="calendar-policy.md",
+                chunk_idx=0,
+                text="Another OpenGov chunk.",
+            ),
+            retrieved_chunk(
+                file_path="meetings-policy.md", chunk_idx=0, text="Third OpenGov chunk."
+            ),
             madetech_chunk(),
         ],
         present_top_k=3,
@@ -155,7 +161,9 @@ def test_hallucinated_citation_is_dropped(caplog: pytest.LogCaptureFixture) -> N
 
     result = answerer.answer("How many sick days?", [retrieved_chunk()])
 
-    assert [citation.file_path for citation in result.citations] == ["sick-leave-policy.md"]
+    assert [citation.file_path for citation in result.citations] == [
+        "sick-leave-policy.md"
+    ]
     assert "Dropping hallucinated citation key" in caplog.text
 
 

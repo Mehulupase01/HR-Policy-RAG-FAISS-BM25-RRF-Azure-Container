@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import logging
-from time import perf_counter
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+import logging
 from pathlib import Path
+from time import perf_counter
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
@@ -21,8 +21,13 @@ from app.guardrails.disagreement import DisagreementDetector
 from app.guardrails.out_of_corpus import OutOfCorpusDetector
 from app.ingest.blob_store import BlobIndexStore, INDEX_FILES
 from app.ingest.embedder import Embedder
+from app.observability.logging import configure_json_logging
+from app.observability.middleware import RequestIdMiddleware
+from app.observability.telemetry import configure_azure_monitor_telemetry
 from app.retrieval.retriever import HybridRetriever
 
+configure_json_logging()
+configure_azure_monitor_telemetry()
 logger = logging.getLogger(__name__)
 INDEX_DIR = DEFAULT_INDEX_DIR
 
@@ -35,7 +40,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.settings = settings
     index_dir = settings.index_local_dir
 
-    logger.info("Starting application dependency load; index_dir=%s", index_dir)
+    logger.info(
+        "startup_dependency_load_started",
+        extra={"event": "startup_dependency_load_started", "index_dir": str(index_dir)},
+    )
     if not _index_artifacts_exist(index_dir):
         if settings.blob_account_url is None:
             raise RuntimeError(
@@ -43,10 +51,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             )
         download_started = perf_counter()
         logger.info(
-            "Index download started; blob_prefix=%s container=%s destination=%s",
-            settings.index_blob_prefix,
-            settings.blob_index_container,
-            index_dir,
+            "index_download_started",
+            extra={
+                "event": "index_download_started",
+                "blob_prefix": settings.index_blob_prefix,
+                "blob_container": settings.blob_index_container,
+                "index_dir": str(index_dir),
+            },
         )
         store = BlobIndexStore(
             storage_account_url=str(settings.blob_account_url),
@@ -55,19 +66,34 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         try:
             store.download_index(index_dir, settings.index_blob_prefix)
         except Exception:
-            logger.exception("Index download failed; startup will fail rather than serve without an index.")
+            logger.exception(
+                "index_download_failed",
+                extra={"event": "index_download_failed", "index_dir": str(index_dir)},
+            )
             raise
 
         if not _index_artifacts_exist(index_dir):
             received = _index_artifact_summary(index_dir)
-            raise RuntimeError(f"Blob download finished but required index artifacts are missing: {received}")
+            raise RuntimeError(
+                f"Blob download finished but required index artifacts are missing: {received}"
+            )
         logger.info(
-            "Index download finished in %.2fs; files_received=%s",
-            perf_counter() - download_started,
-            _index_artifact_summary(index_dir),
+            "index_download_finished",
+            extra={
+                "event": "index_download_finished",
+                "duration_ms": round((perf_counter() - download_started) * 1000, 2),
+                "files_received": _index_artifact_summary(index_dir),
+            },
         )
     else:
-        logger.info("Using local index artifacts from %s; files=%s", index_dir, _index_artifact_summary(index_dir))
+        logger.info(
+            "index_local_artifacts_found",
+            extra={
+                "event": "index_local_artifacts_found",
+                "index_dir": str(index_dir),
+                "files": _index_artifact_summary(index_dir),
+            },
+        )
 
     client_started = perf_counter()
     openai_client = AzureOpenAI(
@@ -75,7 +101,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         azure_endpoint=str(settings.azure_openai_endpoint),
         api_version=settings.azure_openai_api_version,
     )
-    logger.info("Azure OpenAI client configured in %.2fs", perf_counter() - client_started)
+    logger.info(
+        "azure_openai_client_configured",
+        extra={
+            "event": "azure_openai_client_configured",
+            "duration_ms": round((perf_counter() - client_started) * 1000, 2),
+        },
+    )
 
     retriever_started = perf_counter()
     embedder = Embedder(
@@ -85,7 +117,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.embedder = embedder
     retriever = HybridRetriever.from_index_dir(index_dir, embedder)
     app.state.retriever = retriever
-    logger.info("Hybrid retriever loaded in %.2fs", perf_counter() - retriever_started)
+    logger.info(
+        "hybrid_retriever_loaded",
+        extra={
+            "event": "hybrid_retriever_loaded",
+            "duration_ms": round((perf_counter() - retriever_started) * 1000, 2),
+        },
+    )
 
     app.state.answerer = Answerer(
         client=openai_client,
@@ -97,7 +135,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     )
     app.state.disagreement_detector = DisagreementDetector(retriever)
     app.state.index_dir = index_dir
-    logger.info("Application dependency load finished in %.2fs", perf_counter() - startup_started)
+    logger.info(
+        "startup_dependency_load_finished",
+        extra={
+            "event": "startup_dependency_load_finished",
+            "duration_ms": round((perf_counter() - startup_started) * 1000, 2),
+        },
+    )
     yield
 
 
@@ -108,6 +152,7 @@ def create_app() -> FastAPI:
         version="0.1.0",
         lifespan=lifespan,
     )
+    app.add_middleware(RequestIdMiddleware)
     app.include_router(health_router)
     app.include_router(query_router)
     _register_exception_handlers(app)
@@ -128,7 +173,9 @@ def _index_artifact_summary(index_dir: Path) -> dict[str, int | None]:
 
 def _register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(RequestValidationError)
-    async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    async def validation_exception_handler(
+        request: Request, exc: RequestValidationError
+    ) -> JSONResponse:
         return JSONResponse(
             status_code=422,
             content={
@@ -139,7 +186,9 @@ def _register_exception_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(HTTPException)
-    async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+    async def http_exception_handler(
+        request: Request, exc: HTTPException
+    ) -> JSONResponse:
         return JSONResponse(
             status_code=exc.status_code,
             headers=exc.headers,
@@ -151,8 +200,14 @@ def _register_exception_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(Exception)
-    async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-        logger.exception("Unhandled exception while processing %s %s", request.method, request.url.path)
+    async def unhandled_exception_handler(
+        request: Request, exc: Exception
+    ) -> JSONResponse:
+        logger.exception(
+            "Unhandled exception while processing %s %s",
+            request.method,
+            request.url.path,
+        )
         return JSONResponse(
             status_code=500,
             content={

@@ -26,7 +26,9 @@ def tokenize_for_bm25(text: str) -> list[str]:
     return normalized.split()
 
 
-def build_indexes(chunks_with_embeddings: Sequence[Chunk], output_dir: Path | str) -> dict[str, Any]:
+def build_indexes(
+    chunks_with_embeddings: Sequence[Chunk], output_dir: Path | str
+) -> dict[str, Any]:
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 
@@ -71,9 +73,13 @@ def build_indexes(chunks_with_embeddings: Sequence[Chunk], output_dir: Path | st
 def _stack_embeddings(chunks: Sequence[Chunk]) -> np.ndarray:
     missing = [chunk.chunk_id for chunk in chunks if chunk.embedding is None]
     if missing:
-        raise ValueError(f"Cannot build indexes; chunks missing embeddings: {missing[:5]}")
+        raise ValueError(
+            f"Cannot build indexes; chunks missing embeddings: {missing[:5]}"
+        )
 
-    embeddings = np.vstack([chunk.embedding for chunk in chunks]).astype(np.float32, copy=False)
+    embeddings = np.vstack([chunk.embedding for chunk in chunks]).astype(
+        np.float32, copy=False
+    )
     if embeddings.shape != (len(chunks), EMBEDDING_DIMENSIONS):
         raise ValueError(
             f"Expected embeddings shape ({len(chunks)}, {EMBEDDING_DIMENSIONS}); "

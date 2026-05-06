@@ -27,7 +27,9 @@ class FakeContainerClient:
         self.uploads: dict[str, bytes] = {}
         self.existing: set[str] = set()
 
-    def upload_blob(self, *, name: str, data, overwrite: bool) -> None:  # object from Azure SDK
+    def upload_blob(
+        self, *, name: str, data, overwrite: bool
+    ) -> None:  # object from Azure SDK
         assert overwrite is True
         self.uploads[name] = data.read()
         self.existing.add(name)

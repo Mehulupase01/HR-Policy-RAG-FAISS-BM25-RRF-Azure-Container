@@ -19,6 +19,10 @@ export MSYS_NO_PATHCONV=1
 #   https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 # - az containerapp logs show --tail:
 #   https://learn.microsoft.com/en-us/cli/azure/containerapp/logs?view=azure-cli-latest
+# - az monitor app-insights component create/show:
+#   https://learn.microsoft.com/en-us/cli/azure/monitor/app-insights/component?view=azure-cli-latest
+# - Application Insights connection string retrieval:
+#   https://learn.microsoft.com/en-us/azure/azure-monitor/app/create-workspace-resource
 
 SUBSCRIPTION_ID="7550559f-20b4-4528-ab93-4add5a0d6c7d"
 TENANT_ID="07f7e037-e81e-4516-ba96-62f787723bb0"
@@ -31,6 +35,7 @@ STORAGE_BASENAME="stragragintvwmehul"
 CONTAINER_APP_ENV="cae-rag-interview"
 CONTAINER_APP_NAME="hr-rag-app"
 IMAGE_REPOSITORY="hr-rag-app"
+APP_INSIGHTS_NAME="appi-rag-interview"
 SECRET_NAME_OPENAI_KEY="openai-key"
 DEFAULT_BLOB_CONTAINER="rag-index"
 INDEX_LOCAL_DIR="/tmp/index"
@@ -261,6 +266,30 @@ ensure_container_app_environment() {
   fi
 }
 
+ensure_app_insights() {
+  if az monitor app-insights component show \
+    --app "$APP_INSIGHTS_NAME" \
+    --resource-group "$RESOURCE_GROUP" >/dev/null 2>&1; then
+    log "Application Insights exists: ${APP_INSIGHTS_NAME}"
+  else
+    log "Creating Application Insights resource: ${APP_INSIGHTS_NAME}"
+    az monitor app-insights component create \
+      --app "$APP_INSIGHTS_NAME" \
+      --resource-group "$RESOURCE_GROUP" \
+      --location "$LOCATION" \
+      --application-type web \
+      --only-show-errors >/dev/null
+  fi
+
+  APP_INSIGHTS_CONNECTION_STRING="$(az monitor app-insights component show \
+    --app "$APP_INSIGHTS_NAME" \
+    --resource-group "$RESOURCE_GROUP" \
+    --query connectionString \
+    -o tsv \
+    --only-show-errors | clean_az_output)"
+  [[ -n "$APP_INSIGHTS_CONNECTION_STRING" ]] || fail "Could not read Application Insights connection string"
+}
+
 find_storage_account_url() {
   local configured_url storage_account_name
 
@@ -376,6 +405,7 @@ deploy_container_app() {
         "BLOB_INDEX_CONTAINER=${blob_container}" \
         "INDEX_BLOB_PREFIX=${index_blob_prefix}" \
         "INDEX_LOCAL_DIR=${INDEX_LOCAL_DIR}" \
+        "APPLICATIONINSIGHTS_CONNECTION_STRING=${APP_INSIGHTS_CONNECTION_STRING}" \
       --only-show-errors >/dev/null
   else
     log "Creating Container App: ${CONTAINER_APP_NAME}"
@@ -406,6 +436,7 @@ deploy_container_app() {
         "BLOB_INDEX_CONTAINER=${blob_container}" \
         "INDEX_BLOB_PREFIX=${index_blob_prefix}" \
         "INDEX_LOCAL_DIR=${INDEX_LOCAL_DIR}" \
+        "APPLICATIONINSIGHTS_CONNECTION_STRING=${APP_INSIGHTS_CONNECTION_STRING}" \
       --only-show-errors >/dev/null
   fi
 }
@@ -457,6 +488,7 @@ main() {
   ensure_acr
   build_image_in_acr
   ensure_container_app_environment
+  ensure_app_insights
   run_setup_rbac
   ensure_acr_pull_role
   deploy_container_app
@@ -475,10 +507,10 @@ main() {
 main "$@"
 
 : <<'OUT_OF_SCOPE'
-This Phase 11 deploy script intentionally does not set up:
+This Phase 12 deploy script intentionally does not set up:
 - custom domains or certificates
 - CORS, authentication, authorization, rate limiting, WAF, or Front Door
-- Application Insights, OpenTelemetry, dashboards, or alerts
+- custom Application Insights dashboards, alerts, or sampling policies
 - Key Vault references for secrets
 - private networking, private endpoints, VNet integration, or IP restrictions
 - production autoscaling rules beyond min/max replica bounds

@@ -9,11 +9,12 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import logging
 import math
 import os
 import statistics
 import time
-from collections import Counter, defaultdict
+from collections import defaultdict
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -27,6 +28,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from eval.judge_prompts import FAITHFULNESS_JUDGE
 
+logger = logging.getLogger(__name__)
 DEFAULT_CONTEXT_INDEX = Path("data/index")
 QUALITY_BARS = {
     "mean_recall": 0.85,
@@ -75,7 +77,9 @@ class ContextResolver:
         parquet_path = index_dir / "embeddings.parquet"
         if not parquet_path.exists():
             return
-        dataframe = pd.read_parquet(parquet_path, columns=["file_path", "chunk_idx", "text"])
+        dataframe = pd.read_parquet(
+            parquet_path, columns=["file_path", "chunk_idx", "text"]
+        )
         self._chunk_text_by_key = {
             f"{row.file_path}#{int(row.chunk_idx)}": str(row.text)
             for row in dataframe.itertuples(index=False)
@@ -101,10 +105,18 @@ FaithfulnessJudge = Callable[[str, str, str], FaithfulnessResult]
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Run HR RAG evaluation cases.")
-    parser.add_argument("--base-url", required=True, help="Base API URL, for example http://127.0.0.1:8000")
+    parser.add_argument(
+        "--base-url",
+        required=True,
+        help="Base API URL, for example http://127.0.0.1:8000",
+    )
     parser.add_argument("--test-set", required=True, help="Path to eval/test_set.json")
-    parser.add_argument("--out", required=True, help="Path for structured raw results JSON")
-    parser.add_argument("--report", required=True, help="Path for human-readable markdown report")
+    parser.add_argument(
+        "--out", required=True, help="Path for structured raw results JSON"
+    )
+    parser.add_argument(
+        "--report", required=True, help="Path for human-readable markdown report"
+    )
     parser.add_argument(
         "--context-index",
         default=str(DEFAULT_CONTEXT_INDEX),
@@ -112,6 +124,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
     load_dotenv()
     judge = make_azure_faithfulness_judge()
     result = run_evaluation(
@@ -122,8 +135,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         context_index_path=Path(args.context_index) if args.context_index else None,
         faithfulness_judge=judge,
     )
-    print(f"Wrote raw results to {result['output_path']}")
-    print(f"Wrote report to {result['report_path']}")
+    logger.info("Wrote raw results to %s", result["output_path"])
+    logger.info("Wrote report to %s", result["report_path"])
     return 0
 
 
@@ -148,7 +161,9 @@ def run_evaluation(
     model_versions = model_versions_from_env()
     raw_cases: list[dict[str, Any]] = []
     for case in cases:
-        raw_cases.append(_run_case(case, base_url, poster, faithfulness_judge, context_resolver))
+        raw_cases.append(
+            _run_case(case, base_url, poster, faithfulness_judge, context_resolver)
+        )
 
     aggregates = aggregate_results(raw_cases)
     output = {
@@ -183,13 +198,17 @@ def make_http_post_query(base_url: str) -> PostQuery:
         _ = case_id
         start = time.perf_counter()
         with httpx.Client(timeout=60.0) as client:
-            response = client.post(f"{clean_base_url}/query", json={"question": question})
+            response = client.post(
+                f"{clean_base_url}/query", json={"question": question}
+            )
         latency_ms = (time.perf_counter() - start) * 1000.0
         try:
             payload = response.json()
         except ValueError:
             payload = {"raw_text": response.text}
-        return APIResult(status_code=response.status_code, payload=payload, latency_ms=latency_ms)
+        return APIResult(
+            status_code=response.status_code, payload=payload, latency_ms=latency_ms
+        )
 
     return post_query
 
@@ -207,7 +226,10 @@ def make_azure_faithfulness_judge() -> FaithfulnessJudge:
             model=deployment_name,
             messages=[
                 {"role": "system", "content": FAITHFULNESS_JUDGE},
-                {"role": "user", "content": _faithfulness_user_message(question, answer, context)},
+                {
+                    "role": "user",
+                    "content": _faithfulness_user_message(question, answer, context),
+                },
             ],
             response_format={"type": "json_object"},
             temperature=0.0,
@@ -215,11 +237,15 @@ def make_azure_faithfulness_judge() -> FaithfulnessJudge:
         )
         content = getattr(response.choices[0].message, "content", None)
         if not content:
-            raise FaithfulnessJudgeError("Faithfulness judge returned an empty response")
+            raise FaithfulnessJudgeError(
+                "Faithfulness judge returned an empty response"
+            )
         try:
             payload = _FaithfulnessPayload.model_validate_json(content)
         except ValidationError as exc:
-            raise FaithfulnessJudgeError("Faithfulness judge returned malformed JSON") from exc
+            raise FaithfulnessJudgeError(
+                "Faithfulness judge returned malformed JSON"
+            ) from exc
         return FaithfulnessResult(score=payload.score, reasoning=payload.reasoning)
 
     return judge
@@ -235,8 +261,14 @@ def _run_case(
     api_result = post_query(str(case["question"]), str(case["id"]))
     payload = api_result.payload
     answer = _extract_answer(payload)
-    citations = payload.get("citations") if isinstance(payload.get("citations"), list) else []
-    citation_paths = [str(citation.get("file_path", "")) for citation in citations if isinstance(citation, dict)]
+    citations = (
+        payload.get("citations") if isinstance(payload.get("citations"), list) else []
+    )
+    citation_paths = [
+        str(citation.get("file_path", ""))
+        for citation in citations
+        if isinstance(citation, dict)
+    ]
     context = context_resolver.context_from_citations(citations)
     expected_citations = case.get("expected_citations_contain")
     recall = _retrieval_recall(expected_citations, citation_paths)
@@ -306,7 +338,9 @@ def aggregate_results(cases: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def render_report(output: dict[str, Any], *, report_path: Path, test_set_path: Path) -> str:
+def render_report(
+    output: dict[str, Any], *, report_path: Path, test_set_path: Path
+) -> str:
     config = output["config"]
     overall = output["aggregates"]["overall"]
     categories = output["aggregates"]["by_category"]
@@ -392,7 +426,9 @@ def worst_cases(cases: list[dict[str, Any]], *, limit: int = 5) -> list[dict[str
 def model_versions_from_env() -> dict[str, str]:
     return {
         "chat_deployment": os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT", "unknown"),
-        "embedding_deployment": os.getenv("AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "unknown"),
+        "embedding_deployment": os.getenv(
+            "AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "unknown"
+        ),
         "azure_openai_api_version": os.getenv("AZURE_OPENAI_API_VERSION", "unknown"),
     }
 
@@ -416,14 +452,21 @@ def _aggregate_group(cases: list[dict[str, Any]]) -> dict[str, Any]:
     return {
         "case_count": len(cases),
         "mean_recall": _mean_or_none(recall_values),
-        "refusal_accuracy": _mean_or_none([1.0 if case["metrics"]["refusal_match"] else 0.0 for case in cases]),
+        "refusal_accuracy": _mean_or_none(
+            [1.0 if case["metrics"]["refusal_match"] else 0.0 for case in cases]
+        ),
         "mean_faithfulness": _mean_or_none(faithfulness_values),
         "surfaces_both_rate": _mean_or_none(
-            [1.0 if case["metrics"]["detected_surfaces_both_sources"] else 0.0 for case in expected_both]
+            [
+                1.0 if case["metrics"]["detected_surfaces_both_sources"] else 0.0
+                for case in expected_both
+            ]
         ),
         "mean_latency_ms": _mean_or_none(latencies),
         "p95_latency_ms": _p95_or_none(latencies),
-        "error_rate": _mean_or_none([1.0 if case["metrics"]["error"] else 0.0 for case in cases]),
+        "error_rate": _mean_or_none(
+            [1.0 if case["metrics"]["error"] else 0.0 for case in cases]
+        ),
     }
 
 
@@ -439,16 +482,30 @@ def _summary_row(category: str, metrics: dict[str, Any]) -> str:
 def _met_missed_lines(overall: dict[str, Any]) -> list[str]:
     checks = [
         ("mean_recall", "Recall", "retrieved citations missed expected source files."),
-        ("refusal_accuracy", "Refusal", "refusal behavior did not match the test set expectations."),
-        ("surfaces_both_rate", "Surfaces-both", "disagreement answers did not consistently name both handbooks."),
-        ("mean_faithfulness", "Faithfulness", "the judge found unsupported answer claims."),
+        (
+            "refusal_accuracy",
+            "Refusal",
+            "refusal behavior did not match the test set expectations.",
+        ),
+        (
+            "surfaces_both_rate",
+            "Surfaces-both",
+            "disagreement answers did not consistently name both handbooks.",
+        ),
+        (
+            "mean_faithfulness",
+            "Faithfulness",
+            "the judge found unsupported answer claims.",
+        ),
     ]
     lines: list[str] = []
     for key, label, miss_reason in checks:
         value = overall.get(key)
         bar = QUALITY_BARS[key]
         if value is None:
-            lines.append(f"- {label}: missed because no applicable cases produced this metric.")
+            lines.append(
+                f"- {label}: missed because no applicable cases produced this metric."
+            )
         elif value >= bar:
             lines.append(f"- {label}: met ({value:.3f} >= {bar:.2f}).")
         else:
@@ -463,14 +520,25 @@ def _diagnose_case(case: dict[str, Any]) -> str:
         issues.append("expected citation file was not returned")
     if not metrics["refusal_match"]:
         issues.append("refusal expectation did not match")
-    if bool(case["expected_surfaces_both_sources"]) and not metrics["detected_surfaces_both_sources"]:
+    if (
+        bool(case["expected_surfaces_both_sources"])
+        and not metrics["detected_surfaces_both_sources"]
+    ):
         issues.append("answer did not surface both sources")
     faithfulness = metrics["faithfulness"]
-    if faithfulness and faithfulness["score"] is not None and faithfulness["score"] < 0.8:
+    if (
+        faithfulness
+        and faithfulness["score"] is not None
+        and faithfulness["score"] < 0.8
+    ):
         issues.append(f"faithfulness was low ({faithfulness['score']:.2f})")
     if metrics["error"]:
         issues.append(f"HTTP status was {case['http_status']}")
-    return "; ".join(issues) if issues else "lowest aggregate score among otherwise passing cases"
+    return (
+        "; ".join(issues)
+        if issues
+        else "lowest aggregate score among otherwise passing cases"
+    )
 
 
 def _case_quality_score(case: dict[str, Any]) -> float:
@@ -501,7 +569,9 @@ def _extract_answer(payload: dict[str, Any]) -> str:
     return ""
 
 
-def _retrieval_recall(expected_citations: Any, citation_paths: list[str]) -> float | None:
+def _retrieval_recall(
+    expected_citations: Any, citation_paths: list[str]
+) -> float | None:
     if expected_citations is None:
         return None
     expected = [str(item) for item in expected_citations]
@@ -548,7 +618,9 @@ def _p95_or_none(values: Sequence[float]) -> float | None:
     if not values:
         return None
     sorted_values = sorted(values)
-    index = max(0, min(len(sorted_values) - 1, math.ceil(len(sorted_values) * 0.95) - 1))
+    index = max(
+        0, min(len(sorted_values) - 1, math.ceil(len(sorted_values) * 0.95) - 1)
+    )
     return float(sorted_values[index])
 
 

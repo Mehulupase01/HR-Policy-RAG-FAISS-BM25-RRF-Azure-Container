@@ -158,7 +158,9 @@ def test_does_not_retry_4xx_api_error() -> None:
     assert len(client.embeddings.calls) == 1
 
 
-def test_over_limit_text_is_logged_and_skipped(caplog: pytest.LogCaptureFixture) -> None:
+def test_over_limit_text_is_logged_and_skipped(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     client = FakeClient()
     embedder = Embedder(client, "text-embedding-3-large")
     over_limit_text = "token " * 9000

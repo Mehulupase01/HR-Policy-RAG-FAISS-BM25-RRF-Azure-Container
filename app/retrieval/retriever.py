@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import logging
 import pickle
 from pathlib import Path
+from time import perf_counter
 from typing import Any
 
 import faiss
@@ -11,9 +13,17 @@ import numpy as np
 import pandas as pd
 
 from app.ingest.embedder import EMBEDDING_DIMENSIONS
-from app.ingest.indexer import BM25_INDEX, EMBEDDINGS_PARQUET, FAISS_INDEX, tokenize_for_bm25
+from app.ingest.indexer import (
+    BM25_INDEX,
+    EMBEDDINGS_PARQUET,
+    FAISS_INDEX,
+    tokenize_for_bm25,
+)
 from app.ingest.models import Source
+from app.observability.privacy import hash_text
 from app.retrieval.models import RetrievedChunk
+
+logger = logging.getLogger(__name__)
 
 
 class HybridRetriever:
@@ -48,23 +58,34 @@ class HybridRetriever:
             self.chunks_dataframe
         )
         self._row_by_chunk_id = {
-            str(row["chunk_id"]): idx
-            for idx, row in self.chunks_dataframe.iterrows()
+            str(row["chunk_id"]): idx for idx, row in self.chunks_dataframe.iterrows()
         }
 
     @classmethod
     def from_index_dir(cls, index_dir: Path | str, embedder: Any) -> "HybridRetriever":
+        started = perf_counter()
         index_path = Path(index_dir)
         dataframe = pd.read_parquet(index_path / EMBEDDINGS_PARQUET)
         faiss_index = faiss.read_index(str(index_path / FAISS_INDEX))
         with (index_path / BM25_INDEX).open("rb") as file:
             bm25_index = pickle.load(file)
+        logger.info(
+            "retriever_index_loaded",
+            extra={
+                "event": "retriever_index_loaded",
+                "index_dir": str(index_path),
+                "chunk_count": len(dataframe),
+                "duration_ms": round((perf_counter() - started) * 1000, 2),
+            },
+        )
         return cls(faiss_index, bm25_index, dataframe, embedder)
 
     def retrieve(self, query: str, top_k: int = 8) -> list[RetrievedChunk]:
         if top_k <= 0:
             raise ValueError("top_k must be positive")
 
+        started = perf_counter()
+        query_hash = hash_text(query)
         query_embedding = self.embedder.embed_texts([query]).astype(np.float32)
         if query_embedding.shape != (1, EMBEDDING_DIMENSIONS):
             raise ValueError(
@@ -75,6 +96,15 @@ class HybridRetriever:
 
         dense_rank_by_row, dense_score_by_row = self._dense_search(query_embedding)
         bm25_rank_by_row = self._bm25_search(query)
+        logger.info(
+            "retrieval_candidates_ready",
+            extra={
+                "event": "retrieval_candidates_ready",
+                "question_hash": query_hash,
+                "dense_candidate_count": len(dense_rank_by_row),
+                "bm25_candidate_count": len(bm25_rank_by_row),
+            },
+        )
 
         candidate_rows = set(dense_rank_by_row) | set(bm25_rank_by_row)
         fused: list[tuple[int, float]] = []
@@ -87,7 +117,7 @@ class HybridRetriever:
             fused.append((row_idx, score))
 
         fused.sort(key=lambda item: item[1], reverse=True)
-        return [
+        results = [
             self._to_retrieved_chunk(
                 row_idx=row_idx,
                 query_embedding=query_embedding,
@@ -97,6 +127,18 @@ class HybridRetriever:
             )
             for row_idx, rrf_score in fused[:top_k]
         ]
+        logger.info(
+            "retrieval_completed",
+            extra={
+                "event": "retrieval_completed",
+                "question_hash": query_hash,
+                "returned_chunk_count": len(results),
+                "candidate_union_count": len(candidate_rows),
+                "top_k": top_k,
+                "duration_ms": round((perf_counter() - started) * 1000, 2),
+            },
+        )
+        return results
 
     def get_embedding(self, chunk_id: str) -> np.ndarray:
         row_idx = self._row_by_chunk_id.get(chunk_id)
@@ -107,7 +149,9 @@ class HybridRetriever:
             dtype=np.float32,
         )
 
-    def _dense_search(self, query_embedding: np.ndarray) -> tuple[dict[int, int], dict[int, float]]:
+    def _dense_search(
+        self, query_embedding: np.ndarray
+    ) -> tuple[dict[int, int], dict[int, float]]:
         pool = min(self.dense_pool, len(self.chunks_dataframe))
         distances, indexes = self.faiss_index.search(query_embedding, pool)
         dense_rank_by_row: dict[int, int] = {}
@@ -141,7 +185,9 @@ class HybridRetriever:
         row = self.chunks_dataframe.iloc[row_idx]
         dense_score = dense_score_by_row.get(row_idx)
         if dense_score is None:
-            dense_score = float(np.dot(query_embedding[0], self._normalized_embeddings[row_idx]))
+            dense_score = float(
+                np.dot(query_embedding[0], self._normalized_embeddings[row_idx])
+            )
 
         return RetrievedChunk(
             chunk_id=str(row["chunk_id"]),

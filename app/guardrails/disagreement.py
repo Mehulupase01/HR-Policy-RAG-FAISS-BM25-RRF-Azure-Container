@@ -15,8 +15,7 @@ TOPIC_OVERLAP_THRESHOLD = 0.58
 
 
 class EmbeddingLookup(Protocol):
-    def get_embedding(self, chunk_id: str) -> np.ndarray:
-        ...
+    def get_embedding(self, chunk_id: str) -> np.ndarray: ...
 
 
 @dataclass(frozen=True)
@@ -52,7 +51,10 @@ class DisagreementDetector:
 
         centroids = {
             source: _normalized_centroid(
-                [self.embedding_lookup.get_embedding(chunk.chunk_id) for chunk in chunks]
+                [
+                    self.embedding_lookup.get_embedding(chunk.chunk_id)
+                    for chunk in chunks
+                ]
             )
             for source, chunks in chunks_by_source.items()
         }

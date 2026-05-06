@@ -281,13 +281,13 @@ OpenGov (US) and Made Tech (UK) cover the same topics with different rules, and 
 Always present both / detect disagreement and inject a "compare" instruction / let the LLM figure it out from mixed sources.
 
 **Choice**
-We try to detect a disagreement by (multisource presence + centroid) cosine > 0.7 and inject disagreement isntructions into the system prompt.
+We try to detect a disagreement by (multisource presence + centroid) cosine > 0.58 and inject disagreement isntructions into the system prompt.
 
 **Reasoning**
 Always presenting both produces bad answers especially considering only one source is relevant, and letting LLM figure it out just fails, so altogtehr detection + instruction is the surgical fix
 
 **Trade-off accepted**
-Threshold is deafult which is 0.7 it isn't optimized
+Threshold is calibrated on the current eval set, but it is still a heuristic rather than a learned classifier.
 
 **If I had more time / future work**
 I would fine tune the threshold on disagreement evaluations.
@@ -338,3 +338,7 @@ Two step provisioning (storage + RBAC then app) also the rotation of OpenAI key 
 
 **If I had more time / future work**
 I would have moved OpenAI key into the key vault and referencd via key vault secret URL for centralizaed rotation and this is good espcially when you have multiple apps
+
+
+
+Lastly since my azure account upasemehul@gmail.com doesn't have the owner / user access admin role I can't create role assignments or simply in terms of azure "this identity is allowed to do this action on this resource"

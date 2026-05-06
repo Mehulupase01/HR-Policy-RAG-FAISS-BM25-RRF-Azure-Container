@@ -87,8 +87,12 @@ def make_app(
     app.include_router(query_router)
     app.state.retriever = retriever
     app.state.answerer = answerer
-    app.state.out_of_corpus_detector = out_of_corpus_detector or FakeOutOfCorpusDetector()
-    app.state.disagreement_detector = disagreement_detector or FakeDisagreementDetector()
+    app.state.out_of_corpus_detector = (
+        out_of_corpus_detector or FakeOutOfCorpusDetector()
+    )
+    app.state.disagreement_detector = (
+        disagreement_detector or FakeDisagreementDetector()
+    )
     return app
 
 
@@ -221,9 +225,7 @@ def test_query_hedges_when_out_of_corpus_signals_disagree() -> None:
 def test_query_does_not_hedge_exact_refusal() -> None:
     retrieved = [chunk()]
     retriever = FakeRetriever(retrieved)
-    answerer = FakeAnswerer(
-        AnsweredQuery(answer=REFUSAL_ANSWER, citations=[])
-    )
+    answerer = FakeAnswerer(AnsweredQuery(answer=REFUSAL_ANSWER, citations=[]))
     out_of_corpus_detector = FakeOutOfCorpusDetector(
         OutOfCorpusDecision(
             score_signal_refuse=False,
@@ -276,4 +278,6 @@ def test_query_answer_parse_error_returns_502() -> None:
     response = client.post("/query", json={"question": "How many sick days do I get?"})
 
     assert response.status_code == 502
-    assert response.json()["detail"] == "Azure OpenAI returned an invalid answer payload."
+    assert (
+        response.json()["detail"] == "Azure OpenAI returned an invalid answer payload."
+    )

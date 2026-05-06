@@ -40,7 +40,9 @@ def raw_pdf(content: str, file_path: str = "policy.pdf") -> RawDocument:
 
 
 def test_tiny_file_produces_exactly_one_chunk() -> None:
-    chunks = list(chunk_document(raw_markdown("# Handbook\n\nTiny but useful policy text.")))
+    chunks = list(
+        chunk_document(raw_markdown("# Handbook\n\nTiny but useful policy text."))
+    )
 
     assert len(chunks) == 1
     assert chunks[0].chunk_idx == 0
@@ -56,7 +58,9 @@ def test_chunk_ids_are_deterministic_for_same_document() -> None:
     first_run = list(chunk_document(document))
     second_run = list(chunk_document(document))
 
-    assert [chunk.chunk_id for chunk in first_run] == [chunk.chunk_id for chunk in second_run]
+    assert [chunk.chunk_id for chunk in first_run] == [
+        chunk.chunk_id for chunk in second_run
+    ]
 
 
 def test_long_markdown_h2_sections_preserve_breadcrumbs() -> None:
@@ -135,8 +139,12 @@ def test_real_corpus_chunks_preserve_required_metadata_invariants() -> None:
 
 
 def test_pdf_chunks_have_page_markers() -> None:
-    page_one = "\n\n".join(" ".join(f"pageone{i}_{j}" for j in range(80)) for i in range(8))
-    page_two = "\n\n".join(" ".join(f"pagetwo{i}_{j}" for j in range(80)) for i in range(8))
+    page_one = "\n\n".join(
+        " ".join(f"pageone{i}_{j}" for j in range(80)) for i in range(8)
+    )
+    page_two = "\n\n".join(
+        " ".join(f"pagetwo{i}_{j}" for j in range(80)) for i in range(8)
+    )
     chunks = list(chunk_document(raw_pdf(f"{page_one}\f{page_two}")))
 
     assert chunks
@@ -154,4 +162,7 @@ def test_chunk_idx_resets_for_each_source_file() -> None:
     chunks = list(chunk_documents(documents))
 
     assert [chunk.chunk_idx for chunk in chunks] == [0, 0]
-    assert [chunk.file_path for chunk in chunks] == [Path("first.md"), Path("second.pdf")]
+    assert [chunk.file_path for chunk in chunks] == [
+        Path("first.md"),
+        Path("second.pdf"),
+    ]

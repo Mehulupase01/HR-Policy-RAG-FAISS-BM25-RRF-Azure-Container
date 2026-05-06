@@ -18,7 +18,10 @@ def _live_query_enabled() -> bool:
 
 
 def _index_available(index_dir: Path = INDEX_DIR) -> bool:
-    return all((index_dir / filename).exists() for filename in (EMBEDDINGS_PARQUET, FAISS_INDEX, BM25_INDEX))
+    return all(
+        (index_dir / filename).exists()
+        for filename in (EMBEDDINGS_PARQUET, FAISS_INDEX, BM25_INDEX)
+    )
 
 
 @pytest.mark.live_openai

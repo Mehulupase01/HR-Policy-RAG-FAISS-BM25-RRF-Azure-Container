@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from time import perf_counter
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
@@ -10,6 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from app.generation.models import AnsweredQuery
 from app.generation.prompts import DISAGREEMENT_INSTRUCTION, SYSTEM_PROMPT_V1
 from app.models import Citation
+from app.observability.privacy import hash_text
 from app.retrieval.models import RetrievedChunk
 
 logger = logging.getLogger(__name__)
@@ -47,6 +49,8 @@ class Answerer:
         if present_top_k <= 0:
             raise ValueError("present_top_k must be positive")
 
+        started = perf_counter()
+        question_hash = hash_text(question)
         presented = _select_presented_chunks(
             retrieved,
             present_top_k,
@@ -57,6 +61,16 @@ class Answerer:
         if surface_disagreement:
             system_prompt = f"{DISAGREEMENT_INSTRUCTION}\n\n{SYSTEM_PROMPT_V1}"
 
+        logger.info(
+            "answer_generation_started",
+            extra={
+                "event": "answer_generation_started",
+                "question_hash": question_hash,
+                "retrieved_chunk_count": len(retrieved),
+                "presented_chunk_count": len(presented),
+                "surface_disagreement": surface_disagreement,
+            },
+        )
         # Microsoft docs confirm JSON mode via response_format={"type": "json_object"}
         # and require "JSON" in the messages. The REST reference lists json_object
         # as a response format compatible with GPT-4o-family chat completions.
@@ -85,7 +99,9 @@ class Answerer:
         try:
             payload = _LLMAnswerPayload.model_validate_json(content)
         except ValidationError as exc:
-            raise AnswerParseError("Azure OpenAI returned malformed answer JSON") from exc
+            raise AnswerParseError(
+                "Azure OpenAI returned malformed answer JSON"
+            ) from exc
 
         citation_by_key = {
             _citation_key(chunk): Citation(
@@ -105,14 +121,33 @@ class Answerer:
             seen.add(key)
             citation = citation_by_key.get(key)
             if citation is None:
-                logger.warning("Dropping hallucinated citation key from answer: %s", key)
+                logger.warning(
+                    "Dropping hallucinated citation key from answer",
+                    extra={
+                        "event": "answer_hallucinated_citation_dropped",
+                        "question_hash": question_hash,
+                        "citation_key": key,
+                    },
+                )
                 continue
             citations.append(citation)
 
+        logger.info(
+            "answer_generation_completed",
+            extra={
+                "event": "answer_generation_completed",
+                "question_hash": question_hash,
+                "answer_length": len(payload.answer),
+                "citation_count": len(citations),
+                "duration_ms": round((perf_counter() - started) * 1000, 2),
+            },
+        )
         return AnsweredQuery(
             answer=payload.answer,
             citations=citations,
-            retrieval_scores=[chunk.rrf_score for chunk in presented] if presented else None,
+            retrieval_scores=[chunk.rrf_score for chunk in presented]
+            if presented
+            else None,
         )
 
 
@@ -159,7 +194,11 @@ def _select_presented_chunks(
     all_sources = {chunk.source for chunk in retrieved}
     for source in sorted(all_sources - selected_sources):
         source_chunk = next(
-            (chunk for chunk in retrieved if chunk.source == source and chunk.chunk_id not in selected_ids),
+            (
+                chunk
+                for chunk in retrieved
+                if chunk.source == source and chunk.chunk_id not in selected_ids
+            ),
             None,
         )
         if source_chunk is not None:

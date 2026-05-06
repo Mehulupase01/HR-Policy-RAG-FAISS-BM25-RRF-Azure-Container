@@ -145,7 +145,9 @@ def test_eval_harness_writes_results_and_report(
             latency_ms=12.0,
         )
 
-    def faithfulness_judge(question: str, answer: str, context: str) -> FaithfulnessResult:
+    def faithfulness_judge(
+        question: str, answer: str, context: str
+    ) -> FaithfulnessResult:
         _ = (question, answer, context)
         return FaithfulnessResult(score=1.0, reasoning="Supported by cited context.")
 

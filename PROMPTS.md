@@ -291,7 +291,11 @@ Also, we are not doing the Oout of Corpus detector and disagreement detector in 
 
 ### Asked Codex to Deploy the real app with secrets and managed identity
 
->I asked Codex to provision the managed identity, and then assign it the role to read index from blob and then it deploys the real app with OpenAI key as an encrypted secret rather 
+>I asked Codex to provision the managed identity, and then assign it the role to read index from blob and then it deploys the real app with OpenAI key as an encrypted secret rather than plain env var
+
+>Also asked to verify against the latest microsoft docs that the az containeapp flag nams and their shapes are current
+
+>But we runned into a huge roadblock, I kind of forgot to check that the azure account needs permission to create RBAC role.
 
 Phase 11 as deferred/blocked by Azure RBAC permissions, not failed architecture. The important pieces are still useful and correct:
 
@@ -303,4 +307,16 @@ Phase 11 as deferred/blocked by Azure RBAC permissions, not failed architecture.
 Real RAG Container Apps deployment was implemented but not completed because the Azure account lacked permission to create RBAC role assignments for the user-assigned managed identity
 
 ## Phase 12: Observability, polish, Loom
+**Context:** We try to do three things here Observability, Polish & Loom etc.
 
+### Added structured logging and Application Insights:
+
+>I asked Codex to wire the logging and tracing that makes debugging easier.
+
+>Since the deployment couldn't get through we can't really do anything
+
+>I asked Codex to use Azure Monitor OpenTelemetry since this package does most fo the work in one call
+
+### Polish the README and clean the codebase:
+
+>I asked Codex to rewrite the README, run Ruff cleanup, remove obvious leftovers, audit dependencies, and rerun the full test suite.
