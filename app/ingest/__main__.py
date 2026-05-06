@@ -43,16 +43,16 @@ def main() -> None:
     summary = timed("Building local indexes", lambda: build_indexes(embedded_chunks, output_dir))
     logger.info("Index summary: %s", summary)
 
-    storage_account_url = os.getenv("AZURE_STORAGE_ACCOUNT_URL") or os.getenv("BLOB_ACCOUNT_URL")
+    storage_account_url = os.getenv("BLOB_ACCOUNT_URL")
     if storage_account_url:
-        container_name = os.getenv("AZURE_BLOB_CONTAINER_NAME", "rag-index")
+        container_name = os.getenv("BLOB_INDEX_CONTAINER", "rag-index")
         store = BlobIndexStore(storage_account_url, container_name)
         timed(
             f"Uploading index artifacts to Blob prefix '{blob_prefix}'",
             lambda: store.upload_index(output_dir, blob_prefix),
         )
     else:
-        logger.info("Skipping Blob upload; AZURE_STORAGE_ACCOUNT_URL/BLOB_ACCOUNT_URL not set")
+        logger.info("Skipping Blob upload; BLOB_ACCOUNT_URL not set")
 
 
 def timed(label: str, func: Callable[[], T]) -> T:

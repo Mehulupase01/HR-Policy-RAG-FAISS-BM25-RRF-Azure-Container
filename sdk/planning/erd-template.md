@@ -313,11 +313,10 @@ Persist `bm25.pkl` to Blob alongside `hr-policy.faiss.index` and the chunk metad
 | `AZURE_OPENAI_API_VERSION` | API version used for chat and embeddings calls. |
 | `AZURE_OPENAI_CHAT_DEPLOYMENT` | Chat deployment name: `gpt-4o`. |
 | `AZURE_OPENAI_EMBEDDING_DEPLOYMENT` | Embedding deployment name: `text-embedding-3-large`. |
-| `AZURE_STORAGE_ACCOUNT_URL` | Blob account URL used with managed identity in Azure Container Apps. |
-| `AZURE_BLOB_CONTAINER_NAME` | Container holding FAISS/parquet retrieval artifacts. |
-| `FAISS_INDEX_BLOB_NAME` | Blob name for the FAISS `.index` artifact. |
-| `CHUNK_METADATA_BLOB_NAME` | Blob name for the chunk metadata parquet artifact. |
-| `BM25_BLOB_NAME` | Blob name for the persisted BM25 artifact, default `bm25.pkl`. |
+| `BLOB_ACCOUNT_URL` | Blob account URL used with managed identity in Azure Container Apps. |
+| `BLOB_INDEX_CONTAINER` | Container holding FAISS/parquet/BM25 retrieval artifacts, default `rag-index`. |
+| `INDEX_BLOB_PREFIX` | Blob prefix containing `embeddings.parquet`, `faiss.index`, and `bm25.pkl`, default `latest`. |
+| `INDEX_LOCAL_DIR` | Local directory to load indexes from or download indexes into, default `data/index` locally and `/tmp/index` in Container Apps. |
 
 ### Local Development Convenience
 

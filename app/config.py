@@ -8,6 +8,8 @@ from pathlib import Path
 from pydantic import AnyHttpUrl, Field, SecretStr, ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+DEFAULT_INDEX_DIR = Path(__file__).resolve().parent.parent / "data" / "index"
+
 
 class Settings(BaseSettings):
     """Runtime settings.
@@ -21,9 +23,10 @@ class Settings(BaseSettings):
     azure_openai_api_version: str = Field(alias="AZURE_OPENAI_API_VERSION")
     azure_openai_chat_deployment: str = Field(alias="AZURE_OPENAI_CHAT_DEPLOYMENT")
     azure_openai_embedding_deployment: str = Field(alias="AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
-    azure_storage_account_url: AnyHttpUrl | None = Field(default=None, alias="AZURE_STORAGE_ACCOUNT_URL")
-    azure_blob_container_name: str = Field(default="rag-index", alias="AZURE_BLOB_CONTAINER_NAME")
+    blob_account_url: AnyHttpUrl | None = Field(default=None, alias="BLOB_ACCOUNT_URL")
+    blob_index_container: str = Field(default="rag-index", alias="BLOB_INDEX_CONTAINER")
     index_blob_prefix: str = Field(default="latest", alias="INDEX_BLOB_PREFIX")
+    index_local_dir: Path = Field(default=DEFAULT_INDEX_DIR, alias="INDEX_LOCAL_DIR")
 
     model_config = SettingsConfigDict(
         env_file=Path(__file__).resolve().parent.parent / ".env",

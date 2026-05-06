@@ -115,11 +115,11 @@ main() {
   ensure_container
 
   printf '\nStorage setup complete.\n'
-  printf 'AZURE_STORAGE_ACCOUNT_URL=%s\n' "$STORAGE_ACCOUNT_URL"
-  printf 'AZURE_BLOB_CONTAINER_NAME=%s\n' "$CONTAINER_NAME"
+  printf 'BLOB_ACCOUNT_URL=%s\n' "$STORAGE_ACCOUNT_URL"
+  printf 'BLOB_INDEX_CONTAINER=%s\n' "$CONTAINER_NAME"
 }
 
 main "$@"
 
-# TODO: Assign Storage Blob Data Contributor to the Container App managed identity
-# once managed identity is introduced in the later deployment phases.
+# Role assignment for the Container App user-assigned managed identity is handled
+# by deploy/setup-rbac.sh in Phase 11.
