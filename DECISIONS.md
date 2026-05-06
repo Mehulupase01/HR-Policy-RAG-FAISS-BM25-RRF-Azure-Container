@@ -61,45 +61,46 @@ Cold start downloads the index from Azure Blob and loads into memory (maybe just
 **If I had more time / future work**
 Move to Azure AI Search if the corpus grows past maybe 50k chunks, or to Qdrant for native hybrid + metadata filtering
 
-## D-04 TODO
+## D-04 Embedding model
 
 **Context**
-TODO
+We have to convert text to vectors for retrieval
 
 **Considered**
-TODO
+text-embedding-3-large (3072 dimensions) / text-embedding-3-small (1536 dimensions)
 
 **Choice**
-TODO
+text-embedding-3-large
 
 **Reasoning**
-TODO
+Already deployed in the provided Azure resource, secondly its higher on benchmarks scores than small and lastly the storage for such small corpus with around 250 to max 500 chunks the storage use is almost nothing.
 
 **Trade-off accepted**
-TODO
+Maybe double or tripple the embedding API cost as compared to small, but for a corpus this small it would again be a really small amount ideally. 
 
 **If I had more time / future work**
-TODO
+Maybe experimented with Open-Source embedding models like Qwen 3, BGE-M3 etc.
 
-## D-05 TODO
+## D-05 LLM for generation
 
 **Context**
-TODO
+Needed a LLM to synthesize answers from retrieved chunks
 
 **Considered**
-TODO
+gpt-4o / gpt-4o-mini / gpt-3.5
 
 **Choice**
-TODO
+gpt-4o (deployment 2024-11-20)
 
 **Reasoning**
-TODO
+Deployed in the provided resource
 
 **Trade-off accepted**
-TODO
+Much more cost per query as compared to gpt-4o-mini etc. 
 
 **If I had more time / future work**
-TODO
+I would do a A/B test with gpt-4o-mini on the same evaluation set and I would likely use mini for non-disagreement cases and reserve gpt-4o for disagreement
+prompts
 
 ## D-06 Markdown chunking strategy
 
@@ -178,30 +179,52 @@ For Tiny: which mostly are <400 tokens, in that case we make a whole file chunk 
 For Consolidated: I just hardcoded in the loader to skip the PDF
 
 **Reasoning**
-TODO
+Soo putting the tiny files as whole chunk is better as value of such short files is same as the whole file, we skip the consolidated PDF as ingesting it would double-index OpenGov content causing issue in retrieval.
 
 **Trade-off accepted**
-TODO
+Consolidate PDF is skipped since it can be marked as dedup step
 
 **If I had more time / future work**
-TODO
+Some sort of content validation and similarity check mechnism that would flag such near duplicate cases. 
 
-## D-10 TODO
+## D-10 Retrieval strategy
 
 **Context**
-TODO
+Pure dense retrieval misses verbatim policy keywords i.e. FMLA and on other hand pure lexical misses paraphrases or changed queries. 
 
 **Considered**
-TODO
+Dense only / BM25 only / hybrid via score-weighted sum / hybrid via Reciprocal Rank Fusion
 
 **Choice**
-TODO
+Hybrid via RRF with k=60
 
 **Reasoning**
-TODO
+If we see RRF it normalizes across methods it uses ranks and not the raw scores so the dense retrievals's [-1,1] scale doesn't collide with BM25's unbound scale, K=60 which is standard as per the paper. 
 
 **Trade-off accepted**
-TODO
+Two indexes to keep in sync. Tokenization consistency enforced by sharing tokenize_for_bm25() between indexer and retriever
 
 **If I had more time / future work**
-TODO
+I would have added a full scale learned cross-encoder reranker on top of the 20 fused results, it increases precision greatly at cost of slight latency overhead
+
+
+## D-11 top_k for retrieval
+
+**Context**
+How many chunks to feed the LLM, and how many to consider for out of corpus detection.  
+
+**Considered**
+top-3, top-5, top-8, top-10
+
+**Choice**
+ Retrieve 8 (for out of corpus judge to see if needed), present 4 to the answerer
+
+**Reasoning**
+The out of corpus judge benefits from a few extra chunks to make a better
+answer yes or no call. Plus the asnwerer has sufficient context of 4chunks * 800 tokes which is 3200 tokens. 
+
+**Trade-off accepted**
+Very niche but possible edge cases where the right answer could be at rank 5–8 miss the answerer
+
+**If I had more time / future work**
+Best way could be experimenting with different top_k values. 

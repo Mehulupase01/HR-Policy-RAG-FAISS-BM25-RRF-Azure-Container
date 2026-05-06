@@ -34,7 +34,9 @@ RUN apt-get update \
         libgomp1 \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd --gid 10001 appuser \
-    && useradd --uid 10001 --gid 10001 --create-home --shell /usr/sbin/nologin appuser
+    && useradd --uid 10001 --gid 10001 --create-home --shell /usr/sbin/nologin appuser \
+    && mkdir -p /app/data \
+    && chown -R appuser:appuser /app
 
 WORKDIR /app
 

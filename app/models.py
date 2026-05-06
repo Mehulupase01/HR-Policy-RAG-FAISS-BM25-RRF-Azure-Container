@@ -8,8 +8,18 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
 
 class QueryRequest(BaseModel):
-    question: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
-    top_k: int | None = Field(default=None, ge=1)
+    question: Annotated[
+        str,
+        StringConstraints(strip_whitespace=True, min_length=1),
+    ] = Field(description="HR policy question to answer from the indexed corpus.")
+    top_k: int | None = Field(
+        default=None,
+        ge=1,
+        description=(
+            "Number of chunks to retrieve before answer generation. The answerer "
+            "currently receives the top 4 retrieved chunks for grounding."
+        ),
+    )
 
 
 class Citation(BaseModel):

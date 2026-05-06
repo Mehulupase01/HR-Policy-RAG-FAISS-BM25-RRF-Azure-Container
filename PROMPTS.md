@@ -182,3 +182,30 @@
 >I asked Codex to return some quality related stats from the tests it did, and the results were in expected or good range.
 
 >Lastly it gave some recommendation regarding adding a tiny SDK adapter, I denied the recommended change as that's something more better in next phase as the adapter is the bridge between our retrieval layer and the SDK's generation layer. 
+
+
+## Phase 8: Generation, citations, and the prompt
+**Context:** In this we do the second half of the query path and then we wire up the retriever from phase 7 and build a generator and then connect them in app/api/query.py so POST /Query returns real answers. We also wire the FastAPI lifespan so retriever and cleints are constructed once at startup and not per request. 
+
+Also, we are not doing the Oout of Corpus detector and disagreement detector in this phase
+
+>This phase is simple answerer: retrieve, prompt, generate, verify citations and return. 
+
+### Building the asnwerer and its system prompt: 
+
+>In this step I asked Codex to build the generator and lock in the system prompt that shapes the answer quality. 
+
+>Further Codex built the citation validation against the retrieved chunks which prevents the LLM's occasional habit of inventing chunk refrences. 
+
+>Also asked it to perform a small test to check citation key behaviour.
+
+### Wiring the retriever and answerer into the FastAPI App:
+
+>I asked Codex to pull the components from phase 6,7 and 8 into a working endpoint, explained it to load FAISS Index once at startup and it stays in the memory for eevry subsequent request. 
+
+>I asked Codex to do a bit of error handling i.e. 502, 503 and 422 etc. 
+
+>Also to perform tests and a tough case "How many sick days do I get?" and asked it to retur me the responses and retrieval scores
+
+>Codex successfully completed all this and also few recommendations from Codex were partially aceepted. 
+

@@ -21,11 +21,9 @@ class Settings(BaseSettings):
     azure_openai_api_version: str = Field(alias="AZURE_OPENAI_API_VERSION")
     azure_openai_chat_deployment: str = Field(alias="AZURE_OPENAI_CHAT_DEPLOYMENT")
     azure_openai_embedding_deployment: str = Field(alias="AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
-    azure_storage_account_url: AnyHttpUrl = Field(alias="AZURE_STORAGE_ACCOUNT_URL")
-    azure_blob_container_name: str = Field(alias="AZURE_BLOB_CONTAINER_NAME")
-    faiss_index_blob_name: str = Field(alias="FAISS_INDEX_BLOB_NAME")
-    chunk_metadata_blob_name: str = Field(alias="CHUNK_METADATA_BLOB_NAME")
-    bm25_blob_name: str = Field(alias="BM25_BLOB_NAME")
+    azure_storage_account_url: AnyHttpUrl | None = Field(default=None, alias="AZURE_STORAGE_ACCOUNT_URL")
+    azure_blob_container_name: str = Field(default="rag-index", alias="AZURE_BLOB_CONTAINER_NAME")
+    index_blob_prefix: str = Field(default="latest", alias="INDEX_BLOB_PREFIX")
 
     model_config = SettingsConfigDict(
         env_file=Path(__file__).resolve().parent.parent / ".env",
