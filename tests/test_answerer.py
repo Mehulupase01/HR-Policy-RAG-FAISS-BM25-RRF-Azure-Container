@@ -54,6 +54,15 @@ def retrieved_chunk(
     )
 
 
+def madetech_chunk() -> RetrievedChunk:
+    return retrieved_chunk(
+        file_path="sick-leave-procedures.md",
+        chunk_idx=0,
+        source="madetech",
+        text="Made Tech sick leave procedure text.",
+    )
+
+
 def test_answer_returns_valid_citations() -> None:
     client = FakeClient(
         '{"answer":"Employees receive sick leave. sick-leave-policy.md#3",'
@@ -109,6 +118,32 @@ def test_surface_disagreement_prepends_disagreement_instruction() -> None:
     messages = client.completions.kwargs["messages"]
     assert isinstance(messages, list)
     assert messages[0]["content"].startswith(DISAGREEMENT_INSTRUCTION)
+
+
+def test_surface_disagreement_presents_both_sources_when_one_is_lower_ranked() -> None:
+    client = FakeClient(
+        '{"answer":"Per OpenGov... Per Made Tech...",'
+        '"citation_keys":["sick-leave-policy.md#3","sick-leave-procedures.md#0"]}'
+    )
+    answerer = Answerer(client=client, deployment_name="gpt-4o")
+
+    result = answerer.answer(
+        "How do the policies differ?",
+        [
+            retrieved_chunk(text="OpenGov top chunk."),
+            retrieved_chunk(file_path="calendar-policy.md", chunk_idx=0, text="Another OpenGov chunk."),
+            retrieved_chunk(file_path="meetings-policy.md", chunk_idx=0, text="Third OpenGov chunk."),
+            madetech_chunk(),
+        ],
+        present_top_k=3,
+        surface_disagreement=True,
+    )
+
+    assert [citation.source for citation in result.citations] == ["opengov", "madetech"]
+    assert client.completions.kwargs is not None
+    user_message = client.completions.kwargs["messages"][1]["content"]
+    assert "sick-leave-policy.md#3" in user_message
+    assert "sick-leave-procedures.md#0" in user_message
 
 
 def test_hallucinated_citation_is_dropped(caplog: pytest.LogCaptureFixture) -> None:

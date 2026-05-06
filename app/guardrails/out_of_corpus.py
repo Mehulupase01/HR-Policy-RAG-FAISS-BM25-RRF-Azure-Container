@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from openai import BadRequestError
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from app.generation.prompts import OUT_OF_CORPUS_JUDGE_PROMPT
@@ -53,7 +54,18 @@ class OutOfCorpusDetector:
     ) -> OutOfCorpusDecision:
         max_rrf_score = max((chunk.rrf_score for chunk in retrieved), default=0.0)
         score_signal_refuse = max_rrf_score < RRF_REFUSAL_THRESHOLD
-        judge_can_answer = self._judge_can_answer(question, retrieved[:present_top_k])
+        try:
+            judge_can_answer = self._judge_can_answer(question, retrieved[:present_top_k])
+        except BadRequestError as exc:
+            if not _is_content_filter_error(exc):
+                raise
+            return OutOfCorpusDecision(
+                score_signal_refuse=True,
+                judge_signal_refuse=True,
+                refuse=True,
+                signals_disagree=False,
+                max_rrf_score=max_rrf_score,
+            )
         judge_signal_refuse = not judge_can_answer
         return OutOfCorpusDecision(
             score_signal_refuse=score_signal_refuse,
@@ -111,3 +123,18 @@ def _build_judge_message(question: str, chunks: list[RetrievedChunk]) -> str:
             ]
         )
     return "\n".join(lines)
+
+
+def _is_content_filter_error(exc: BadRequestError) -> bool:
+    body = getattr(exc, "body", None)
+    if not isinstance(body, dict):
+        return False
+    error = body.get("error", body)
+    if not isinstance(error, dict):
+        return False
+    if error.get("code") == "content_filter":
+        return True
+    inner = error.get("innererror")
+    if isinstance(inner, dict) and inner.get("code") == "ResponsibleAIPolicyViolation":
+        return True
+    return False

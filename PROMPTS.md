@@ -186,7 +186,7 @@
 
 ## Phase 8: Generation, citations, and the prompt
 **Context:** In this we do the second half of the query path and then we wire up the retriever from phase 7 and build a generator and then connect them in app/api/query.py so POST /Query returns real answers. We also wire the FastAPI lifespan so retriever and cleints are constructed once at startup and not per request. 
-
+ 
 Also, we are not doing the Oout of Corpus detector and disagreement detector in this phase
 
 >This phase is simple answerer: retrieve, prompt, generate, verify citations and return. 
@@ -211,4 +211,74 @@ Also, we are not doing the Oout of Corpus detector and disagreement detector in 
 
 ## Phase 9: Out-of-corpus & disagreement handling
 
-**Context:** 
+**Context:** We are making two small but important modules:
+
+1. Out of Corpus  Detector: If we are given retrieved chunks + question, it decides wether to refuse based on two signals score threshold + LLM judge. 
+
+2. Disagreement Detector: If we are given retrieved chunks, it decides wether they represent two sources disagreeing on the same topic, if yes the answerer's system prompt get's additional instruction of compare & attribute 
+
+### Building the out of corpus and disagreement handling:
+
+>I asked Codex to make out of corpus & disagreement detector and handling on top of the working RAG, I asked to create a two signal AND gate for out of corpus handling.
+
+>Further I also asked it to make a centroid similarity disagreement detector which uses (multisource presence + centroid) cosine > 0.7
+
+>I asked it to perform tests that covers the edge cases and the out of corpus truth table (score above/below crossed with judge says yes/no)
+
+>I asked it to do tests on diagreement detector as well by having positive case (two cases with similar centroids) and negative (two cases with orthogonal centroids)
+
+>it completed all these perfectly.
+
+## Phase 10: The evaluation framework
+
+### Asked Codex to make a Test set: 
+
+>I asked Code to make a structured test with deliberate category coverage, I also asked it to verify against the actual corpus.
+
+>I asked to create the test like this: 
+>A] 5 verbatim queries
+>D] 8 source-disagreement
+>E] 4 single-source-only (where the topic could exist in both but only one source actually covers it)
+>F] 5 clearly out-of-corpus
+
+>G] 4 plausibly out-of-corpus (adjacent to corpus topics but not actually covered), and 3 adversarial.
+
+>Codex created the test set, and returned it. I verified them and approved it. 
+
+### Asked Codex to make the evalution framwork: 
+
+>I asked Codex to build a runner that turns the test set into reproducible numebrs and a readable report. 
+
+>I asked Codex to perform the full evaluation locally, with the following metrics to be reported in JSON and results.md: 
+
+1. Retrieval Recall >= 0.85
+2. refusal accuracy >= 0.90
+3. Surface both sources >= 0.75
+4. Mean Faithfulness >= 0.80
+
+>At first results weren't that good: 
+
+>Overall results:
+
+1. Recall: 0.929 met the 0.85 bar
+2. Refusal accuracy: 0.925 met the 0.90 bar
+3. Surfaces-both: 0.625 missed the 0.75 bar
+4. Mean faithfulness: 0.250 missed the 0.80 bar
+5. Mean latency: 3333 ms
+
+>Then I gave it some fixes I had in mind: 
+
+
+1. Fix 1:  Recalibrate the faithfulness judge prompt
+2. Fix 2 : The empty-question 422 (case H01) as the eval expected an empty question to be refused with the refusal sentence (200 OK with refusal text) but Instead the API returned 422 because Pydantic rejected the empty string at validation time that's my best guess. 
+3. Fix 3: The 503 on prompt injection (case H02). just running Azure OpenAI failure mid-eval atleast that's what I think not a system bug, just a flaky run and re-running should fix it
+
+4. Fix 4: look at the D02/D04/D06 logs to diagnose surfaces both, then either fix retrieval or lower the centroid threshold accordingly and re-run
+
+>Updated Results: 
+
+1. Recall: met (0.982 >= 0.85).
+2. Refusal: met (0.975 >= 0.90).
+3. Surfaces-both: met (1.000 >= 0.75).
+4. Faithfulness: met (0.982 >= 0.80).
+

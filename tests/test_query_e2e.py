@@ -152,6 +152,23 @@ def test_query_empty_retrieval_returns_refusal() -> None:
     assert answerer.calls == []
 
 
+def test_query_empty_question_returns_refusal_without_retrieval() -> None:
+    retriever = FakeRetriever([chunk()])
+    answerer = FakeAnswerer(AnsweredQuery(answer="unused", citations=[]))
+    client = TestClient(make_app(retriever, answerer))
+
+    response = client.post("/query", json={"question": ""})
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "answer": REFUSAL_ANSWER,
+        "citations": [],
+        "retrieval_scores": [],
+    }
+    assert retriever.calls == []
+    assert answerer.calls == []
+
+
 def test_query_out_of_corpus_refusal_short_circuits_answerer() -> None:
     retrieved = [chunk()]
     retriever = FakeRetriever(retrieved)

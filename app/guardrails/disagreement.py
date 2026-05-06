@@ -11,7 +11,7 @@ import numpy as np
 from app.ingest.models import Source
 from app.retrieval.models import RetrievedChunk
 
-TOPIC_OVERLAP_THRESHOLD = 0.7
+TOPIC_OVERLAP_THRESHOLD = 0.58
 
 
 class EmbeddingLookup(Protocol):

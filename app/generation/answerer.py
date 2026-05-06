@@ -47,7 +47,11 @@ class Answerer:
         if present_top_k <= 0:
             raise ValueError("present_top_k must be positive")
 
-        presented = retrieved[:present_top_k]
+        presented = _select_presented_chunks(
+            retrieved,
+            present_top_k,
+            surface_disagreement=surface_disagreement,
+        )
         user_message = _build_user_message(question, presented)
         system_prompt = SYSTEM_PROMPT_V1
         if surface_disagreement:
@@ -134,6 +138,43 @@ def _build_user_message(question: str, chunks: list[RetrievedChunk]) -> str:
             ]
         )
     return "\n".join(lines)
+
+
+def _select_presented_chunks(
+    retrieved: list[RetrievedChunk],
+    present_top_k: int,
+    *,
+    surface_disagreement: bool,
+) -> list[RetrievedChunk]:
+    if not surface_disagreement:
+        return retrieved[:present_top_k]
+
+    selected: list[RetrievedChunk] = []
+    selected_ids: set[str] = set()
+    for chunk in retrieved[:1]:
+        selected.append(chunk)
+        selected_ids.add(chunk.chunk_id)
+
+    selected_sources = {chunk.source for chunk in selected}
+    all_sources = {chunk.source for chunk in retrieved}
+    for source in sorted(all_sources - selected_sources):
+        source_chunk = next(
+            (chunk for chunk in retrieved if chunk.source == source and chunk.chunk_id not in selected_ids),
+            None,
+        )
+        if source_chunk is not None:
+            selected.append(source_chunk)
+            selected_ids.add(source_chunk.chunk_id)
+
+    for chunk in retrieved:
+        if len(selected) >= present_top_k:
+            break
+        if chunk.chunk_id in selected_ids:
+            continue
+        selected.append(chunk)
+        selected_ids.add(chunk.chunk_id)
+
+    return selected[:present_top_k]
 
 
 def _citation_key(chunk: RetrievedChunk) -> str:

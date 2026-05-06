@@ -10,7 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 class QueryRequest(BaseModel):
     question: Annotated[
         str,
-        StringConstraints(strip_whitespace=True, min_length=1),
+        StringConstraints(strip_whitespace=True),
     ] = Field(description="HR policy question to answer from the indexed corpus.")
     top_k: int | None = Field(
         default=None,

@@ -246,7 +246,73 @@ Structured citation list with file_path + chunk_idx; URL + offset
 its actually UI-friendly if we ever make an UI plus additionally its verifiable so we basically check every cited key exists in retrieved chunks before returning soo this drops fabricated citations silently
 
 **Trade-off accepted**
-a claim sourced from one sentence is cited as the whole chunk.
+a claim sourced from one sentence is cited as the whole chunk. additionally when asnwer is returned, the citations don't poin't to which sentence they belong to although this is too granular to expect but still. 
 
 **If I had more time / future work**
-Best way could be experimenting with different top_k values. 
+I could have sort of experimented with putting a character offset inside the chunk i.e. [start, end] to precisely highlight, btu also this might require LLM to do it, and below gpt-4o its unreliable. 
+
+
+## D-13 Out of Corpus Handling
+
+**Context**
+A very naive approach in RAG which is also a rookie mistake by the way is that it retrieves top_k anyway doesn't matter if its relevant or not and the LLM synthesizes an answer which literally causes hallucinations on out of corpus queries
+
+**Considered**
+Score-only refusal / LLM-judge-only refusal / two-signal (score & judge) / cosine distance when query is embedded. 
+
+**Choice**
+The two signal approach score + LLM judge, and we refuse when max rrf < 0.02
+
+**Reasoning**
+Soo if we do this by single signal approach i.e. score or LLM judge its very like that it would over or even under refuse, but when two signals make the decision it is much more robust without much latency 
+
+**Trade-off accepted**
+There always are edge cases where both signals fail in opposite directions, in these case making a boundary is better than wrong and worse than perfect. 
+
+**If I had more time / future work**
+I could have calaibrated the score further by checking in corpus queries vs out of corpus queries, that could have given a more better value.
+
+## D-14 Source diagreement handling
+
+**Context**
+OpenGov (US) and Made Tech (UK) cover the same topics with different rules, and normally a RAG averages them into a fictional unified policy which is wrong. 
+
+**Considered**
+Always present both / detect disagreement and inject a "compare" instruction / let the LLM figure it out from mixed sources.
+
+**Choice**
+We try to detect a disagreement by (multisource presence + centroid) cosine > 0.7 and inject disagreement isntructions into the system prompt. 
+
+**Reasoning**
+Always presenting both produces bad answers especially considering only one source is relevant, and letting LLM figure it out just fails, so altogtehr detection + instruction is the surgical fix
+
+**Trade-off accepted**
+Threshold is deafult which is 0.7 it isn't optimized
+
+**If I had more time / future work**
+I would fine tune the threshold on disagreement evaluations. 
+
+
+## D-15 Evaluation framework
+
+**Context**
+Neede reproducible measurements of the four metrics
+
+**Considered**
+ragas / DeepEval / promptfoo / hand-rolled
+
+**Choice**
+Hand rolled approach, 40 hand written test cases 
+
+**Reasoning**
+Because hand-rolling gives sort of full control over what we measure and a
+defensible methodology as every method has weak points anyway and at 40 cases, library overhead isn't worth it.
+
+**Quality bar:** Retrieval recall ≥ 0.85, refusal accuracy ≥ 0.90,
+surfaces both sources ≥ 0.75, mean faithfulness ≥ 0.80
+
+**Trade-off accepted**
+This test has no statistical significance especially given number of cases is 40 soo the results are indicative. 
+
+**If I had more time / future work**
+I would implement a cross check with RAGAS also build a built in metrics logging and maybe 100+ case synthetic evaluation generated from corpus. 

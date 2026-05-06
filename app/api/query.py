@@ -21,6 +21,13 @@ router = APIRouter(tags=["query"])
 @router.post("/query", response_model=QueryResponse)
 def query(payload: QueryRequest, request: Request) -> QueryResponse:
     """Answer an HR policy question using hybrid retrieval and grounded generation."""
+    if not payload.question:
+        return QueryResponse(
+            answer=REFUSAL_ANSWER,
+            citations=[],
+            retrieval_scores=[],
+        )
+
     retriever = request.app.state.retriever
     answerer = request.app.state.answerer
     out_of_corpus_detector = request.app.state.out_of_corpus_detector
