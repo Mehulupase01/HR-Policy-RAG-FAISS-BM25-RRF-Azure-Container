@@ -1,6 +1,6 @@
 {
   "config": {
-    "base_url": "http://127.0.0.1:8010",
+    "base_url": "http://127.0.0.1:8000",
     "test_set": "eval\\test_set.json",
     "test_set_sha256": "56fe379ebaf74f70ee248f9e4c5bcb77b0356e74c0ab689a02ea7afd103f5a0a",
     "model_versions": {
@@ -21,10 +21,10 @@
       "case_count": 40,
       "mean_recall": 0.9821428571428571,
       "refusal_accuracy": 1.0,
-      "mean_faithfulness": 0.9392857142857143,
+      "mean_faithfulness": 0.9642857142857143,
       "surfaces_both_rate": 1.0,
-      "mean_latency_ms": 3448.7413549999246,
-      "p95_latency_ms": 7114.199499999813,
+      "mean_latency_ms": 3744.518422499823,
+      "p95_latency_ms": 7904.617499998494,
       "error_rate": 0.0
     },
     "by_category": {
@@ -34,8 +34,8 @@
         "refusal_accuracy": 1.0,
         "mean_faithfulness": null,
         "surfaces_both_rate": null,
-        "mean_latency_ms": 1118.9926333336189,
-        "p95_latency_ms": 2402.5203000001056,
+        "mean_latency_ms": 846.2476999999732,
+        "p95_latency_ms": 1985.0274000000354,
         "error_rate": 0.0
       },
       "clearly_out_of_corpus": {
@@ -44,18 +44,18 @@
         "refusal_accuracy": 1.0,
         "mean_faithfulness": null,
         "surfaces_both_rate": null,
-        "mean_latency_ms": 2048.519340000348,
-        "p95_latency_ms": 2533.9426999998977,
+        "mean_latency_ms": 2431.811999999991,
+        "p95_latency_ms": 2692.6165000004403,
         "error_rate": 0.0
       },
       "paraphrased": {
         "case_count": 5,
         "mean_recall": 1.0,
         "refusal_accuracy": 1.0,
-        "mean_faithfulness": 0.9,
+        "mean_faithfulness": 0.8,
         "surfaces_both_rate": null,
-        "mean_latency_ms": 3704.6259999999165,
-        "p95_latency_ms": 4979.9284000000625,
+        "mean_latency_ms": 3013.554679999652,
+        "p95_latency_ms": 3672.8081999990536,
         "error_rate": 0.0
       },
       "plausibly_out_of_corpus": {
@@ -64,8 +64,8 @@
         "refusal_accuracy": 1.0,
         "mean_faithfulness": null,
         "surfaces_both_rate": null,
-        "mean_latency_ms": 1925.6152500001917,
-        "p95_latency_ms": 2530.261800000517,
+        "mean_latency_ms": 1936.1988000000565,
+        "p95_latency_ms": 2223.326699999234,
         "error_rate": 0.0
       },
       "single_source_factual": {
@@ -74,8 +74,8 @@
         "refusal_accuracy": 1.0,
         "mean_faithfulness": 1.0,
         "surfaces_both_rate": null,
-        "mean_latency_ms": 3037.5460666664367,
-        "p95_latency_ms": 5453.9805999993405,
+        "mean_latency_ms": 2927.4473333334754,
+        "p95_latency_ms": 3988.247900000715,
         "error_rate": 0.0
       },
       "single_source_only": {
@@ -84,28 +84,28 @@
         "refusal_accuracy": 1.0,
         "mean_faithfulness": 1.0,
         "surfaces_both_rate": null,
-        "mean_latency_ms": 2937.4659999994037,
-        "p95_latency_ms": 3456.2459999997373,
+        "mean_latency_ms": 4121.130749999793,
+        "p95_latency_ms": 5979.202099999384,
         "error_rate": 0.0
       },
       "source_disagreement": {
         "case_count": 8,
         "mean_recall": 0.9375,
         "refusal_accuracy": 1.0,
-        "mean_faithfulness": 0.975,
+        "mean_faithfulness": 1.0,
         "surfaces_both_rate": 1.0,
-        "mean_latency_ms": 6206.289587499896,
-        "p95_latency_ms": 11248.755099999471,
+        "mean_latency_ms": 7204.690599999594,
+        "p95_latency_ms": 9758.061099999395,
         "error_rate": 0.0
       },
       "verbatim": {
         "case_count": 5,
         "mean_recall": 1.0,
         "refusal_accuracy": 1.0,
-        "mean_faithfulness": 0.8,
+        "mean_faithfulness": 1.0,
         "surfaces_both_rate": null,
-        "mean_latency_ms": 3699.8062999997273,
-        "p95_latency_ms": 5607.724799999232,
+        "mean_latency_ms": 4116.726679999556,
+        "p95_latency_ms": 5167.775099998835,
         "error_rate": 0.0
       }
     }
@@ -122,14 +122,20 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 3547.802399999455,
-      "answer": "Per OpenGov, employees will be set up with an organizational Google Suite account, which provides access to email, calendar, and shared storage. Employees are required to use their organizational email for all work-related activities and not personal accounts. Per Made Tech, there is no specific mention of an organizational Google Suite account or related policies in the provided context.",
+      "latency_ms": 5167.775099998835,
+      "answer": "Per OpenGov, employees will be set up with an organizational Google Suite account, which provides access to email, calendar, and shared storage. Employees are required to use their organizational email for all work-related activities and not personal accounts. Additionally, employees must keep their availability updated on their organizational Google calendar and use it for scheduling meetings and recording events like vacation time or appointments. Per Made Tech, there is no specific mention of an organizational Google Suite account or related policies in the provided context.",
       "citations": [
         {
           "file_path": "email-and-password-policy.md",
           "source": "opengov",
           "chunk_idx": 0,
           "snippet": "Email Accounts, Document Sharing & Password Sharing # Email Accounts, Document Sharing & Password Sharing We will set you up with an organizational Google Suite account. This will provide you access to all the basic necessities like email, calendar, and shared storage. Please use your organizatio..."
+        },
+        {
+          "file_path": "calendar-policy.md",
+          "source": "opengov",
+          "chunk_idx": 0,
+          "snippet": "Calendars # Calendars Please keep your availability updated on your Google calendar account associated with the organization - please don't use your personal account. Please record any meetings, vacation time, appointments, and anything else that your teammates might need to schedule around. Feel..."
         }
       ],
       "retrieval_scores": [
@@ -146,7 +152,7 @@
         "surfaces_both_match": false,
         "faithfulness": {
           "score": 1.0,
-          "reasoning": "The answer accurately reflects the context provided. The context explicitly states that employees will be set up with an organizational Google Suite account, which provides access to email, calendar, and shared storage. It also specifies that employees are required to use their organizational email for all work-related activities and not personal accounts. The mention of Made Tech and its lack of specific policies on this topic is also consistent with the context, as no such information is provided.",
+          "reasoning": "Every factual claim in the answer is directly supported by the context. The context explicitly states that employees will be set up with an organizational Google Suite account, which provides access to email, calendar, and shared storage. It also specifies that employees must use their organizational email for work-related activities, keep their availability updated on the organizational Google calendar, and use it for scheduling meetings and recording events like vacation time or appointments. The answer also correctly notes that there is no mention of an organizational Google Suite account or related policies in the Made Tech context.",
           "error": null
         },
         "error": false
@@ -163,7 +169,7 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 3628.3007000001817,
+      "latency_ms": 2222.7855000001,
       "answer": "The OpenGov Foundation's vision is to serve as a reliable product development partner for legislators who aim to make governance systems more open, accessible, and effective.",
       "citations": [
         {
@@ -187,7 +193,7 @@
         "surfaces_both_match": true,
         "faithfulness": {
           "score": 1.0,
-          "reasoning": "The answer is directly supported by the context. The OpenGov Foundation's vision explicitly states that it aims to serve as a reliable product development partner for legislators who want to make governance systems more open, accessible, and effective. All factual claims in the answer align with the provided context.",
+          "reasoning": "The answer is fully supported by the context. The OpenGov Foundation's vision explicitly states that it aims to serve as a reliable product development partner for legislators who want to make governance systems more open, accessible, and effective. All factual claims in the answer are directly reflected in the provided context.",
           "error": null
         },
         "error": false
@@ -204,8 +210,8 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 3736.2694000003103,
-      "answer": "Per OpenGov, annual cost of living increases are combined with merit increases and are reviewed and approved by the Board of Directors on an annual basis. Per Made Tech, there is no mention of annual cost of living increases in the provided context. The difference is that OpenGov explicitly includes a policy for annual cost of living increases, while Made Tech does not address this topic in the provided information.",
+      "latency_ms": 3482.182899999316,
+      "answer": "Per OpenGov, annual cost of living increases are combined with any merit increases and are reviewed and approved by the Board of Directors on an annual basis. Per Made Tech, there is no information provided about annual cost of living increases in the context given. The difference is that OpenGov explicitly mentions a policy for annual cost of living increases, while Made Tech does not address this topic in the provided context.",
       "citations": [
         {
           "file_path": "raises-and-bonuses.md",
@@ -227,8 +233,8 @@
         "detected_surfaces_both_sources": true,
         "surfaces_both_match": false,
         "faithfulness": {
-          "score": 0.0,
-          "reasoning": "The answer claims that 'Per Made Tech, there is no mention of annual cost of living increases in the provided context,' but the context provided does not include any information about Made Tech. Therefore, this claim is unsupported. Additionally, the rest of the answer is accurate regarding OpenGov, but the unsupported claim about Made Tech prevents a perfect score.",
+          "score": 1.0,
+          "reasoning": "The answer accurately reflects the context provided. OpenGov's policy on annual cost of living increases being combined with merit increases and reviewed by the Board of Directors is explicitly stated in the context. Additionally, the absence of information about annual cost of living increases for Made Tech is correctly noted, as no such information is present in the context. All claims in the answer are directly supported by the context.",
           "error": null
         },
         "error": false
@@ -245,8 +251,8 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 5607.724799999232,
-      "answer": "Per Made Tech, only one person from a small team (less than 4 members) may be away at any one time. For larger teams (5+ members), the policy advises consulting with the Delivery or Team Lead to determine what works best for the team. There is no corresponding policy from OpenGov on this matter, so this rule applies only to Made Tech employees.\n\nThe difference is that OpenGov does not provide any specific guidance on the number of team members who can be away at the same time, while Made Tech explicitly limits it to one person for small teams and requires consultation for larger teams.",
+      "latency_ms": 5091.509500000029,
+      "answer": "Per Made Tech, only one person from a small team (less than 4 members) may be away at any one time. For larger teams (5 or more members), the policy advises consulting with the Delivery or Team Lead to determine what works best for the team. There is no corresponding policy from OpenGov on this topic, so this rule applies only to Made Tech employees.\n\nThe difference is that OpenGov does not provide any specific guidance on the number of people who can be away from a team at the same time, while Made Tech has a clear guideline for small teams and suggests consulting leadership for larger teams.",
       "citations": [
         {
           "file_path": "holiday-policy.pdf",
@@ -269,7 +275,7 @@
         "surfaces_both_match": false,
         "faithfulness": {
           "score": 1.0,
-          "reasoning": "The answer accurately reflects the context provided. The claim that only one person from a small team (less than 4 members) may be away at any one time is directly supported by the context. The policy for larger teams (5+ members) requiring consultation with the Delivery or Team Lead is also explicitly stated in the context. Additionally, the statement that OpenGov does not have a corresponding policy is consistent with the absence of any mention of OpenGov in the provided context. All factual claims in the answer are directly supported by the context.",
+          "reasoning": "The answer accurately reflects the context provided. It states that only one person from a small team (less than 4 members) may be away at any one time, which is directly supported by the context. It also correctly notes that for larger teams (5 or more members), the policy advises consulting with the Delivery or Team Lead, which is also explicitly mentioned in the context. Additionally, the answer correctly points out that there is no corresponding policy from OpenGov on this topic, which is consistent with the absence of any such information in the context. All factual claims in the answer are directly supported by the context.",
           "error": null
         },
         "error": false
@@ -286,7 +292,7 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 1978.9341999994576,
+      "latency_ms": 4619.3803999995,
       "answer": "Based on limited information in our policies, you can purchase equipment directly via the Made Benefits platform using the virtual card on the Work Ready Budget page.",
       "citations": [
         {
@@ -327,7 +333,7 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 4979.9284000000625,
+      "latency_ms": 2624.8023999996803,
       "answer": "No, you should not use your personal Gmail account for work messages. You are required to use your organizational email address for all work-related correspondence.",
       "citations": [
         {
@@ -351,7 +357,7 @@
         "surfaces_both_match": true,
         "faithfulness": {
           "score": 1.0,
-          "reasoning": "The answer is fully supported by the context. The context explicitly states that personal accounts should not be used for work-related activities and that the organizational email address must be used for all work-related correspondence. This directly aligns with the claims made in the answer.",
+          "reasoning": "The answer is fully supported by the context. The context explicitly states that personal accounts should not be used for work-related activities and that the organizational email address must be used for all work-related correspondence. This directly aligns with the answer provided.",
           "error": null
         },
         "error": false
@@ -368,8 +374,8 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 2679.182299999411,
-      "answer": "Training courses costing more than $999 require approval from the Board of Directors.",
+      "latency_ms": 2169.006599999193,
+      "answer": "A training course costing more than $999 requires approval from the Board of Directors.",
       "citations": [
         {
           "file_path": "professional-development-policy.md",
@@ -409,8 +415,8 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 3395.6186999994316,
-      "answer": "Based on limited information in our policies, per Made Tech, you should ideally provide at least 2 months' notice for a request to permanently change your working pattern. Per OpenGov, the policy does not specify a notice period for permanent changes to working patterns, but it emphasizes providing reasonable advance notice for staff and project planning purposes. The difference is that Made Tech explicitly recommends a 2-month notice period, while OpenGov does not specify a timeframe.",
+      "latency_ms": 3431.6741000002366,
+      "answer": "Based on limited information in our policies, per Made Tech, you should ideally provide at least 2 months' notice for a request to permanently change your working pattern. Per OpenGov, the policy does not specify a notice period for permanent changes to working patterns, but it emphasizes providing reasonable advance notice for staff and project planning purposes. The difference is that Made Tech explicitly recommends a 2-month notice period, while OpenGov does not define a specific timeframe.",
       "citations": [
         {
           "file_path": "flexible-working-policy.md",
@@ -438,8 +444,8 @@
         "detected_surfaces_both_sources": true,
         "surfaces_both_match": false,
         "faithfulness": {
-          "score": 0.5,
-          "reasoning": "The answer correctly states that Made Tech recommends providing at least 2 months' notice for a request to permanently change working patterns, which is directly supported by the context. However, the claim that OpenGov does not specify a notice period for permanent changes to working patterns is unsupported. The provided OpenGov context does not discuss policies for permanently changing working patterns at all, so the answer's interpretation of OpenGov's stance is speculative and not directly supported by the context.",
+          "score": 0.0,
+          "reasoning": "The answer claims that Made Tech explicitly recommends a 2-month notice period for a permanent change in working patterns, which is supported by the context. However, it also states that OpenGov does not define a specific timeframe but emphasizes providing reasonable advance notice for staff and project planning purposes. This is incorrect because the context provided for OpenGov pertains to vacation and leave policies, not permanent changes to working patterns. The OpenGov context does not address the question at all, making the claims about OpenGov unsupported.",
           "error": null
         },
         "error": false
@@ -456,7 +462,7 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 3465.324800000417,
+      "latency_ms": 3169.4821000000957,
       "answer": "Based on limited information in our policies, you can opt out of the workplace pension at any point by updating the pension section on Made Benefits. If you opt out at the start of your employment, any initial deduction will be refunded if this is done within one month of the initial deduction. If you opt out before the cut-off date (on the 18th), it will be processed in the same month; otherwise, it will be processed in the following month.",
       "citations": [
         {
@@ -480,7 +486,7 @@
         "surfaces_both_match": true,
         "faithfulness": {
           "score": 1.0,
-          "reasoning": "Every factual claim in the answer is directly supported by the context provided. The answer accurately states that you can opt out of the workplace pension at any point by updating the pension section on Made Benefits. It also correctly mentions that if you opt out at the start of employment, any initial deduction will be refunded if done within one month of the initial deduction. Additionally, the processing timeline for opting out before or after the 18th of the month is consistent with the context. No unsupported claims are present.",
+          "reasoning": "Every factual claim in the answer is directly supported by the context. The process for opting out of the workplace pension, including updating the pension section on Made Benefits, refund conditions for opting out within one month of the initial deduction, and the processing timeline based on the cut-off date (18th), is explicitly detailed in the provided context. No unsupported claims are present.",
           "error": null
         },
         "error": false
@@ -497,8 +503,8 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 4003.0758000002606,
-      "answer": "Based on limited information in our policies, per OpenGov, there is no specific policy addressing what happens if you are off sick and nobody hears from you by late morning. Per Made Tech, if the Account Team has not heard from you by 10:30 AM, they will report you as absent without reason to the People Team, who will then attempt to contact you. If they are unable to reach you, they will call your emergency contact at 11:30 AM. The difference is that OpenGov does not specify a procedure for this scenario, while Made Tech has a detailed process involving reporting and emergency contact outreach.",
+      "latency_ms": 3672.8081999990536,
+      "answer": "Based on limited information in our policies, per OpenGov, there is no specific policy addressing what happens if you are off sick and nobody hears from you by late morning. Per Made Tech, if the Account Team has not heard from you by 10:30 AM, they will report you as absent without reason to the People Team, who will then attempt to contact you. If they are unable to reach you, they will call your emergency contact at 11:30 AM. The difference is that OpenGov does not specify a procedure for this scenario, while Made Tech has a detailed process in place.",
       "citations": [
         {
           "file_path": "sick-leave-procedures.md",
@@ -521,7 +527,7 @@
         "surfaces_both_match": false,
         "faithfulness": {
           "score": 1.0,
-          "reasoning": "The answer is fully supported by the context. The context explicitly states that if the Account Team has not heard from an employee by 10:30 AM, they will report the employee as absent without reason to the People Team, who will then attempt to contact the employee. If they are unable to reach the employee, they will call the emergency contact at 11:30 AM. The answer accurately reflects this process and also correctly notes that OpenGov does not specify a procedure for this scenario, which is consistent with the absence of such details in the provided context.",
+          "reasoning": "The answer is fully supported by the context. The context explicitly states that if the Account Team has not heard from an employee by 10:30 AM, they will report the employee as absent without reason to the People Team, who will then attempt to contact the employee. If they are unable to reach the employee, they will call the emergency contact at 11:30 AM. The answer also correctly notes that OpenGov's policies do not specify a procedure for this scenario, which aligns with the lack of such details in the provided context. All factual claims in the answer are directly supported by the context.",
           "error": null
         },
         "error": false
@@ -538,8 +544,8 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 2540.692899999158,
-      "answer": "Per OpenGov, payroll is administered twice monthly, on the 15th and last day of each month, via direct deposit. If either date falls on a weekend, payroll administration will occur on the Friday immediately prior. Per Made Tech, the context provided does not specify when payroll is administered.",
+      "latency_ms": 2999.372799999037,
+      "answer": "Per OpenGov, payroll is administered twice monthly, on the 15th and last day of each month, via direct deposit. If either date falls on a weekend, payroll administration will occur on the Friday immediately prior. Per Made Tech, there is no specific information provided about payroll administration in the context given. The difference is that OpenGov specifies payroll dates and procedures, while Made Tech does not address payroll timing.",
       "citations": [
         {
           "file_path": "payroll-policy.md",
@@ -562,7 +568,7 @@
         "surfaces_both_match": false,
         "faithfulness": {
           "score": 1.0,
-          "reasoning": "The answer accurately reflects the information provided in the context. It states that payroll is administered twice monthly, on the 15th and last day of each month, via direct deposit, and that if either date falls on a weekend, payroll is administered on the Friday immediately prior. These details are directly supported by the context from OpenGov. The note about Made Tech is also accurate, as the context does not mention Made Tech or its payroll schedule.",
+          "reasoning": "The answer accurately reflects the information provided in the context. It states that payroll is administered twice monthly, on the 15th and last day of each month, via direct deposit, and that if either date falls on a weekend, payroll is administered on the preceding Friday. These details are directly supported by the context. Additionally, the answer correctly notes that no specific payroll information is provided for Made Tech in the context.",
           "error": null
         },
         "error": false
@@ -579,7 +585,7 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 3374.1823999998815,
+      "latency_ms": 3735.2730999991763,
       "answer": "Based on limited information in our policies, per OpenGov, all passwords that need to be shared with the organization must be shared using the shared password manager; passwords should not be shared via email or other insecure methods. Per Made Tech, there is no specific policy provided on how shared passwords should be sent around the organization. The difference is that OpenGov explicitly requires the use of a shared password manager, while Made Tech does not provide guidance on this matter.",
       "citations": [
         {
@@ -603,7 +609,7 @@
         "surfaces_both_match": false,
         "faithfulness": {
           "score": 1.0,
-          "reasoning": "The answer accurately reflects the context provided. It states that OpenGov requires all shared passwords to be shared using the shared password manager and not via email or other insecure methods, which is directly supported by the context. It also correctly notes that no specific policy from Made Tech is provided in the context, aligning with the absence of such information in the provided material.",
+          "reasoning": "The answer accurately reflects the context provided. It states that OpenGov requires all shared passwords to be shared using the shared password manager and not via email or other insecure methods, which is directly supported by the context. It also correctly notes that no specific policy from Made Tech is provided in the context, which aligns with the absence of such information in the provided material.",
           "error": null
         },
         "error": false
@@ -620,7 +626,7 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 2130.4328000005626,
+      "latency_ms": 2662.0746000007784,
       "answer": "Based on limited information in our policies, per OpenGov, each reimbursement request must include:\n1. An image or PDF file containing receipts for each expense.\n2. A classification of each expense into one of the following categories: Travel - In Town, Travel - Out of Town, Conference, Food and Drink, Supplies, Subscriptions, or Event Hosting.\n3. A short note describing each expense (e.g., who, what, where, when, why).",
       "citations": [
         {
@@ -661,7 +667,7 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 2121.6066999995746,
+      "latency_ms": 1945.3013000002102,
       "answer": "Based on limited information in our policies, made Tech provides an 8% employer-matched pension contribution for grade 13 employees.",
       "citations": [
         {
@@ -685,7 +691,7 @@
         "surfaces_both_match": true,
         "faithfulness": {
           "score": 1.0,
-          "reasoning": "The answer states that Made Tech provides an 8% employer-matched pension contribution for grade 13 employees. This is directly supported by the context, which specifies that employees in grades 13 to 15 receive an 8% employer-matched contribution. All factual claims in the answer are accurate and directly supported by the provided context.",
+          "reasoning": "The answer correctly states that Made Tech provides an 8% employer-matched pension contribution for grade 13 employees. This is directly supported by the context, which specifies that employees in grades 13 to 15 receive an 8% employer match. All factual claims in the answer are accurate and directly supported by the provided context.",
           "error": null
         },
         "error": false
@@ -702,8 +708,8 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 5453.9805999993405,
-      "answer": "Per Made Tech, the Work Ready budget can be used for essential equipment that directly facilitates work or daily tasks, such as external monitors, laptop stands, ergonomic chairs, headsets, and other work-related items. It cannot be used for non-work expenses like coffee machines, decor, general furniture, or personal tech. Employees must complete DSE training before using the budget and can seek pre-approval for uncertain items. There is no mention of a Work Ready budget in OpenGov policies.",
+      "latency_ms": 3988.247900000715,
+      "answer": "Per Made Tech, the Work Ready budget can be used for essential equipment that directly facilitates work or daily tasks, such as external monitors, ergonomic chairs, headsets, and laptop bags. It cannot be used for non-work-related items like coffee machines, decor, or personal tech. Employees must complete DSE training before using the budget and can seek pre-approval for uncertain items. There is no mention of a Work Ready budget in OpenGov policies.",
       "citations": [
         {
           "file_path": "equipment-and-work-ready-budget.pdf",
@@ -726,7 +732,7 @@
         "surfaces_both_match": false,
         "faithfulness": {
           "score": 1.0,
-          "reasoning": "The answer accurately reflects the context provided. It specifies that the Work Ready budget can be used for essential work-related equipment such as external monitors, laptop stands, ergonomic chairs, and headsets, which are explicitly listed in the context. It also correctly states that the budget cannot be used for non-work expenses like coffee machines, decor, general furniture, or personal tech, which aligns with the ineligible items outlined in the context. Additionally, the requirement to complete DSE training before using the budget and the option to seek pre-approval for uncertain items are both directly supported by the context. The mention of OpenGov policies is irrelevant but does not contradict the context, as the context does not address OpenGov policies at all.",
+          "reasoning": "The answer accurately reflects the context provided. It specifies that the Work Ready budget can be used for essential work-related equipment like external monitors, ergonomic chairs, headsets, and laptop bags, which aligns with the eligible items listed in the context. It also correctly states that non-work-related items such as coffee machines, decor, and personal tech are ineligible, as outlined in the ineligible items section. The requirement to complete DSE training before using the budget and the option to seek pre-approval for uncertain items are also directly supported by the context. The mention of OpenGov policies is irrelevant but does not contradict the context, as the context does not address OpenGov policies.",
           "error": null
         },
         "error": false
@@ -743,7 +749,7 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 2604.381000000103,
+      "latency_ms": 2234.4143000009353,
       "answer": "Based on limited information in our policies, per Made Tech, they provide 12 weeks of paternity leave at full pay, along with the option of shared parental leave.",
       "citations": [
         {
@@ -767,7 +773,7 @@
         "surfaces_both_match": true,
         "faithfulness": {
           "score": 1.0,
-          "reasoning": "The answer accurately reflects the information provided in the context. The context explicitly states that Made Tech provides 12 weeks of paternity leave at full pay and mentions the option of shared parental leave. All factual claims in the answer are directly supported by the context.",
+          "reasoning": "The answer accurately states that Made Tech provides 12 weeks of paternity leave at full pay and mentions the option of shared parental leave. Both claims are directly supported by the context, which explicitly outlines these benefits under the 'Paternity leave' section.",
           "error": null
         },
         "error": false
@@ -785,8 +791,8 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": true,
       "http_status": 200,
-      "latency_ms": 3887.226899999405,
-      "answer": "Based on limited information in our policies, per OpenGov, the policy does not specify a set number of sick days but emphasizes notifying the team and working from home if unwell to avoid spreading illness. Per Made Tech, employees may take sick leave as needed, but if they accrue more than ten days of sick leave in a 12-month period, it may transition to Statutory Sick Pay. The key difference is that OpenGov does not define a specific limit, while Made Tech sets a threshold of ten days before additional conditions apply.",
+      "latency_ms": 4794.07159999937,
+      "answer": "Based on limited information in our policies, per OpenGov, the policy does not specify a set number of sick days but emphasizes notifying the team and working from home if unwell to avoid spreading illness (<sick-leave-policy.md#0>). Per Made Tech, employees may take sick leave as needed, but if they accrue more than ten days of sick leave in a 12-month period, it may transition to Statutory Sick Pay (<sick-leave-procedures.md#0>). The key difference is that OpenGov does not define a specific limit, while Made Tech outlines a threshold of ten days annually before additional conditions apply.",
       "citations": [
         {
           "file_path": "sick-leave-policy.md",
@@ -815,7 +821,7 @@
         "surfaces_both_match": true,
         "faithfulness": {
           "score": 1.0,
-          "reasoning": "The answer accurately reflects the context provided. It correctly states that OpenGov does not specify a set number of sick days and emphasizes notifying the team and working from home if unwell. It also accurately describes Made Tech's policy, including the threshold of ten days of sick leave in a 12-month period before transitioning to Statutory Sick Pay. All factual claims in the answer are directly supported by the context.",
+          "reasoning": "The answer accurately reflects the context provided. It correctly states that OpenGov does not specify a set number of sick days and emphasizes notifying the team and working from home if unwell. It also accurately describes Made Tech's policy, including the threshold of ten days of sick leave in a 12-month period before transitioning to Statutory Sick Pay. All claims in the answer are directly supported by the context.",
           "error": null
         },
         "error": false
@@ -833,8 +839,8 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": true,
       "http_status": 200,
-      "latency_ms": 7186.2334999996165,
-      "answer": "Per OpenGov, if you are sick and need to take the day off, you should notify the team. Additionally, if you are feeling well enough to work but are still recovering, you should work from home to avoid spreading illness in the office.\n\nPer Made Tech, on your first day of sickness, you should notify your team (via Slack, email, etc.) or the operations team if you are on the Chalet, as early as possible, ideally by the start of business. You should also record your sick leave on HiBob for every day you are on sick leave. If the Account Team has not heard from you by 10:30 AM, they will report your absence to the People Team, who will then attempt to contact you and, if necessary, your emergency contact by 11:30 AM.\n\nThe difference is that OpenGov focuses on notifying the team and working from home if possible, while Made Tech provides a more detailed process, including specific timelines, reporting mechanisms, and the use of HiBob for recording sick leave.",
+      "latency_ms": 9758.061099999395,
+      "answer": "Per OpenGov, if you are sick and need to take the day off, you should notify the team. Additionally, if you feel well enough to work, you are advised to work from home until fully recovered to prevent spreading illness in the office. Per Made Tech, on your first day of sickness, you must inform your team (via Slack, email, etc.) or the operations team if you are on the Chalet, as early as possible, ideally by the start of business. If no notification is received, the Account Team will report your absence to the People Team by 10:30 AM, who will then attempt to contact you and, if unsuccessful, will call your emergency contact by 11:30 AM. The key difference is that OpenGov focuses on notifying the team and working from home if possible, while Made Tech emphasizes early notification and outlines a specific escalation process if no communication is received.",
       "citations": [
         {
           "file_path": "sick-leave-policy.md",
@@ -863,7 +869,7 @@
         "surfaces_both_match": true,
         "faithfulness": {
           "score": 1.0,
-          "reasoning": "The answer accurately reflects the context provided. It correctly summarizes the OpenGov policy, which emphasizes notifying the team and working from home if possible, and the Made Tech policy, which includes notifying the team or operations team early, recording sick leave on HiBob, and the escalation process if no notification is received by specific times. All claims in the answer are directly supported by the context.",
+          "reasoning": "Every factual claim in the answer is directly supported by the provided context. The OpenGov policy specifies notifying the team and working from home if possible, while the Made Tech policy outlines early notification, escalation procedures, and communication methods. The answer accurately reflects these details without introducing unsupported information.",
           "error": null
         },
         "error": false
@@ -881,8 +887,8 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": true,
       "http_status": 200,
-      "latency_ms": 4812.900200000513,
-      "answer": "Per OpenGov, employees are entitled to a minimum of two weeks of paid vacation per year, totaling 10 business days, and the organization is closed on all Federal holidays, the day after Thanksgiving, and during the week between Christmas and New Year. Per Made Tech, employees have 38 days of leave available annually (inclusive of public and bank holidays, pro-rated for part-time employees), and most team members do not work during the three days between Christmas and New Year unless specifically requested by a client. The key difference is that OpenGov specifies a minimum of 10 business days of vacation, while Made Tech provides 38 days of leave inclusive of public holidays.",
+      "latency_ms": 6027.605699999185,
+      "answer": "Per OpenGov, employees are entitled to a minimum of two weeks of paid vacation per year, totaling 10 business days, and the organization is closed on all federal holidays, the day after Thanksgiving, and during the week between Christmas and New Year (#vacation-and-leave-policy.md#0). Per Made Tech, employees have 38 days of leave available annually (inclusive of public and bank holidays) between June and May, with a flexible holiday policy allowing team members to take the holiday they need (#holiday-policy.pdf#0, #leave-types-overview.md#0). The key difference is that OpenGov specifies a minimum of 10 business days of vacation, while Made Tech provides 38 days of leave inclusive of public holidays and emphasizes flexibility.",
       "citations": [
         {
           "file_path": "vacation-and-leave-policy.md",
@@ -897,10 +903,10 @@
           "snippet": "Taking Holiday We\u2019re building a high-performance organisation that delivers great software products. We recog- nise that this requires a lot of hard work and that for our team to perform at their highest possible level, they need to live a well-balanced life and take regular time-out for rest, re..."
         },
         {
-          "file_path": "holiday-policy.pdf",
+          "file_path": "leave-types-overview.md",
           "source": "madetech",
-          "chunk_idx": 1,
-          "snippet": "We recommend you check with your Delivery Lead whenever you join a new team. Our general guideline on this is that only 1 person from a small team (less than 4) may be away at any one time. For larger teams (5+) please refer to your Delivery or Team Lead to confirm what works best for your team...."
+          "chunk_idx": 0,
+          "snippet": "Holiday Here is a list of the time off types in HiBob and some examples of what they should be booked for : We have adopted a flexible holiday policy, where each team member is given the flexibility to take whatever holiday they need. Please see our [flexible holiday page](https://github.com/made..."
         }
       ],
       "retrieval_scores": [
@@ -917,7 +923,7 @@
         "surfaces_both_match": true,
         "faithfulness": {
           "score": 1.0,
-          "reasoning": "The answer accurately reflects the context provided. It states that OpenGov employees are entitled to a minimum of two weeks of paid vacation per year (10 business days) and that the organization is closed on all Federal holidays, the day after Thanksgiving, and during the week between Christmas and New Year, which aligns with the OpenGov policy. Similarly, it mentions that Made Tech employees have 38 days of leave annually (inclusive of public and bank holidays, pro-rated for part-time employees) and that most team members do not work during the three days between Christmas and New Year unless requested by a client, which is consistent with the Made Tech policy. The comparison between the two policies is also accurate based on the context.",
+          "reasoning": "The answer accurately reflects the context provided. For OpenGov, the context specifies that employees are entitled to a minimum of two weeks of paid vacation per year (10 business days) and that the organization is closed on all federal holidays, the day after Thanksgiving, and during the week between Christmas and New Year. For Made Tech, the context confirms that employees have 38 days of leave annually (inclusive of public and bank holidays) and mentions a flexible holiday policy. The comparison between the two policies is also correctly drawn based on the provided details. All factual claims in the answer are directly supported by the context.",
           "error": null
         },
         "error": false
@@ -935,8 +941,8 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": true,
       "http_status": 200,
-      "latency_ms": 5425.335500000074,
-      "answer": "Based on limited information in our policies, per OpenGov, employees must inform their supervisor in writing as far in advance as is reasonable for staff and project planning purposes, with a minimum of 5 business days' notice required for scheduling time off. Per Made Tech, the notice required depends on the length of the holiday: 3 days' notice for 1 day off, 1 week for 2 days off, 2 weeks for 3-4 days off, 4 weeks for 1-2 weeks off, and 3 months for more than 2 weeks off. The key difference is that OpenGov specifies a flat minimum of 5 business days' notice, while Made Tech provides a tiered notice system based on the duration of the leave.",
+      "latency_ms": 6330.2731000003405,
+      "answer": "Based on limited information in our policies, per OpenGov, employees must inform their supervisor in writing as far in advance as is reasonable for staff and project planning purposes, with a minimum of 5 business days' notice required for scheduling time off. Extended periods of leave must be discussed with the Executive Director. \n\nPer Made Tech, the notice required depends on the length of the holiday: \n- For 1 day: at least 3 days' notice\n- For 2 days: at least 1 week's notice\n- For 3-4 days: at least 2 weeks' notice\n- For 1-2 weeks: at least 4 weeks' notice\n- For more than 2 weeks: at least 3 months' notice. \n\nThe key difference is that OpenGov requires a minimum of 5 business days' notice for any time off, while Made Tech specifies varying notice periods based on the duration of the leave.",
       "citations": [
         {
           "file_path": "vacation-and-leave-policy.md",
@@ -965,7 +971,7 @@
         "surfaces_both_match": true,
         "faithfulness": {
           "score": 1.0,
-          "reasoning": "The answer accurately reflects the context provided. It correctly states that OpenGov requires a minimum of 5 business days' notice for scheduling time off and that Made Tech uses a tiered notice system based on the duration of the leave. All specific notice periods mentioned for Made Tech align with the context, and the distinction between the two policies is clearly and accurately described.",
+          "reasoning": "The answer accurately reflects the context provided for both OpenGov and Made Tech policies. It correctly states that OpenGov requires a minimum of 5 business days' notice for scheduling time off and that extended leave must be discussed with the Executive Director. It also accurately outlines the varying notice periods required by Made Tech based on the duration of the leave. All claims in the answer are directly supported by the context.",
           "error": null
         },
         "error": false
@@ -983,8 +989,8 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": true,
       "http_status": 200,
-      "latency_ms": 6325.651799999832,
-      "answer": "Per OpenGov, employees are allowed to work remotely and the organization ensures a comparable work experience regardless of location. Employees must attend required meetings and be accessible during core hours (11 AM\u20134 PM local time) while updating their availability on their work calendar if unavailable during regular work hours (9 AM\u20135 PM locally) [work-schedule-policy.md#0].\n\nPer Made Tech, employees can work remotely, including from home, coffee shops, or even outside the UK, as long as it aligns with team and client needs. Client-facing employees must be able to travel to client offices as required. Additionally, group-facing and non-client-facing employees are encouraged to spend 2\u20133 days per month in a Made Tech office for purpose-driven activities [hybrid-working-policy.pdf#0].\n\nThe key difference is that OpenGov does not specify a minimum in-office attendance, while Made Tech encourages periodic in-office presence for certain employees.",
+      "latency_ms": 8988.74539999997,
+      "answer": "Per OpenGov, employees are allowed to work remotely and the organization ensures a comparable work experience regardless of location. Employees must attend required meetings and be accessible during core hours (11 AM\u20134 PM local time) unless otherwise noted on their calendar (<file_path>#<chunk_idx>: work-schedule-policy.md#0).\n\nPer Made Tech, employees can work remotely, including from home, coffee shops, or even outside the UK, as long as it aligns with team and client needs. However, client-facing team members must be able to travel to client offices as required. Additionally, group-facing and non-client-facing team members are encouraged to spend 2\u20133 days per month in a Made Tech office for purpose-driven activities (<file_path>#<chunk_idx>: hybrid-working-policy.pdf#0).\n\nThe key difference is that OpenGov does not specify a requirement for in-office attendance, while Made Tech encourages periodic in-office presence for certain team members.",
       "citations": [
         {
           "file_path": "work-schedule-policy.md",
@@ -1013,7 +1019,7 @@
         "surfaces_both_match": true,
         "faithfulness": {
           "score": 1.0,
-          "reasoning": "The answer is fully supported by the provided context. It accurately reflects OpenGov's policy that employees can work remotely, must attend required meetings, and be accessible during core hours (11 AM\u20134 PM local time), while updating their availability if unavailable during regular work hours (9 AM\u20135 PM). It also correctly states that Made Tech allows remote work, including from various locations, but encourages 2\u20133 days per month in the office for certain employees and requires client-facing employees to travel to client offices as needed. The distinction between the two companies' policies is also correctly noted.",
+          "reasoning": "The answer accurately reflects the context provided for both OpenGov and Made Tech. It correctly states that OpenGov allows remote work without specifying in-office attendance requirements, while Made Tech permits remote work but encourages periodic in-office presence for certain team members and requires client-facing employees to travel to client offices as needed. All claims in the answer are directly supported by the context.",
           "error": null
         },
         "error": false
@@ -1031,8 +1037,8 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": true,
       "http_status": 200,
-      "latency_ms": 7114.199499999813,
-      "answer": "Per OpenGov, employees are expected to work 40 hours per week with flexibility on where and when the work is done. However, employees must be reasonably accessible by phone, Slack, and email between 11 AM\u20134 PM in their local timezone and attend all required meetings. Any unavailability during the regular workday (9 AM to 5 PM locally) should be noted on their work calendar. Per Made Tech, employees generally work Monday to Friday for 40 hours per week, with flexibility to manage their day as long as team and client commitments are met. There is no specific requirement for availability during certain hours, but employees are expected to ensure they are available for team ceremonies and check in regularly on Slack during the working day. The key difference is that OpenGov specifies a core availability window (11 AM\u20134 PM local time), while Made Tech does not have a defined availability window but emphasizes flexibility and team communication.",
+      "latency_ms": 6045.221399999718,
+      "answer": "Per OpenGov, employees are expected to work 40 hours per week with flexibility on where and when the work is done. However, employees must be reasonably accessible by phone, Slack, and email between 11 AM\u20134 PM in their local timezone and attend all required meetings. Any unavailability during the regular workday (9 AM to 5 PM locally) should be noted on their work calendar. Per Made Tech, employees generally work Monday to Friday for 40 hours per week, with flexibility to manage their day as long as team and client commitments are met. There is no specific mention of core hours or mandatory availability windows. The key difference is that OpenGov specifies core hours (11 AM\u20134 PM) for accessibility, while Made Tech does not impose such a requirement.",
       "citations": [
         {
           "file_path": "work-schedule-policy.md",
@@ -1060,8 +1066,8 @@
         "detected_surfaces_both_sources": true,
         "surfaces_both_match": true,
         "faithfulness": {
-          "score": 0.8,
-          "reasoning": "The answer is mostly supported by the context but contains one unsupported claim. The claim that 'Made Tech does not have a defined availability window but emphasizes flexibility and team communication' is not directly supported by the provided context. While the context mentions flexibility and meeting team and client commitments, it does not explicitly state that there is no defined availability window or that team communication is emphasized in the way described. All other claims about OpenGov and Made Tech are directly supported by the context.",
+          "score": 1.0,
+          "reasoning": "The answer accurately reflects the context provided for both OpenGov and Made Tech. It correctly states that OpenGov expects employees to work 40 hours per week with flexibility on where and when the work is done, while requiring accessibility between 11 AM\u20134 PM in their local timezone and noting unavailability during the regular workday (9 AM\u20135 PM) on their calendar. It also accurately describes Made Tech's policy of working 40 hours per week, Monday to Friday, with flexibility to manage the day as long as team and client commitments are met, and notes the absence of specific core hours or mandatory availability windows. All claims in the answer are directly supported by the context.",
           "error": null
         },
         "error": false
@@ -1079,8 +1085,8 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": true,
       "http_status": 200,
-      "latency_ms": 3650.0142000004416,
-      "answer": "Per OpenGov, employees should report harassment, misconduct, or serious workplace concerns to the Executive Director, Chair, Vice Chair, or Treasurer of the Board of Directors. If the response is unsatisfactory, they should report to another designated person from this list (<reporting-violations-policy.md#0>). Per Made Tech, employees are encouraged to report concerns to their manager, but if they prefer not to, they can contact the Head of People, Head of Operations, or use the confidential whistleblowing email (whistleblowing@madetech.com) (<whistleblowing-policy.pdf#0>). The difference is that OpenGov specifies reporting to specific board members, while Made Tech provides options to report to internal management or via a confidential email.",
+      "latency_ms": 7904.617499998494,
+      "answer": "Per OpenGov, employees should report harassment, misconduct, or serious workplace concerns to the Executive Director, Chair, Vice Chair, or Treasurer of the Board of Directors. If the response is unsatisfactory, they should report to another designated person from this list. Per Made Tech, employees are encouraged to report concerns to their manager, but if they prefer not to, they can contact the Head of People, Head of Operations, or use the confidential whistleblowing email (whistleblowing@madetech.com). The difference lies in the specific roles designated for reporting: OpenGov specifies senior board members, while Made Tech includes operational and HR roles as well as a dedicated whistleblowing email.",
       "citations": [
         {
           "file_path": "reporting-violations-policy.md",
@@ -1109,7 +1115,7 @@
         "surfaces_both_match": true,
         "faithfulness": {
           "score": 1.0,
-          "reasoning": "The answer accurately reflects the context provided for both OpenGov and Made Tech. It specifies the correct individuals to whom employees should report harassment, misconduct, or workplace concerns, as outlined in the respective policies. The distinction between OpenGov's and Made Tech's reporting procedures is also correctly described. All factual claims in the answer are directly supported by the context.",
+          "reasoning": "The answer accurately reflects the reporting procedures outlined in the provided context for both OpenGov and Made Tech. It specifies the roles and methods for reporting harassment, misconduct, or workplace concerns as described in the respective policies. The distinctions between the two organizations' approaches are also correctly noted, with OpenGov emphasizing senior board members and Made Tech including operational and HR roles as well as a whistleblowing email. All claims in the answer are directly supported by the context.",
           "error": null
         },
         "error": false
@@ -1127,8 +1133,8 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": true,
       "http_status": 200,
-      "latency_ms": 11248.755099999471,
-      "answer": "Per OpenGov, employees who believe they have witnessed a violation, such as harassment, should report it to designated management members (Executive Director, Chair, Vice Chair, or Treasurer of the Board of Directors). If the response is unsatisfactory, they should escalate to another designated person. Reports will be investigated confidentially, and no adverse action will be taken against employees who report in good faith (<reporting-violations-policy.md#0>). Per Made Tech, whistleblowing involves reporting suspected wrongdoing, such as fraud or health and safety risks. Concerns can be raised with a manager, the Head of People, or the Head of Operations, or via a confidential email. Whistleblowers are legally protected and must not face retaliation. False, malicious allegations may result in disciplinary action (<whistleblowing-policy.pdf#0>, <whistleblowing-policy.pdf#1>). The key difference is that OpenGov focuses on reporting violations like harassment to specific management roles, while Made Tech provides a broader whistleblowing framework for various types of wrongdoing, with multiple reporting channels and legal protections.",
+      "latency_ms": 7788.92900000028,
+      "answer": "Per OpenGov, employees who believe they have witnessed a violation, such as harassment, should report it to designated members of management (Executive Director, Chair, Vice Chair, or Treasurer of the Board of Directors). If the response is unsatisfactory, they should escalate to another designated person. Reports will be investigated confidentially, and no adverse action will be taken against employees who report in good faith (<reporting-violations-policy.md#0>). Per Made Tech, whistleblowing involves reporting suspected wrongdoing, such as fraud or health and safety risks. Concerns can be raised with a manager, the Head of People, or the Head of Operations, or via a confidential email. Whistleblowers are legally protected and must not face retaliation. False, malicious allegations may result in disciplinary action (<whistleblowing-policy.pdf#0>, <whistleblowing-policy.pdf#1>). The key difference is that OpenGov focuses on reporting violations like harassment to specific management roles, while Made Tech provides a broader whistleblowing framework for various types of wrongdoing, with multiple reporting channels and legal protections.",
       "citations": [
         {
           "file_path": "reporting-violations-policy.md",
@@ -1180,8 +1186,8 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 2752.259699998831,
-      "answer": "Per OpenGov, the company pays 80% of the premium cost for medical, dental, and vision coverage, while the employee pays 20% through payroll deduction. Per Made Tech, there is no information provided about the premium split for medical, dental, and vision coverage.",
+      "latency_ms": 4059.6867999993265,
+      "answer": "Per OpenGov, the company pays 80% of the premium cost for medical, dental, and vision coverage, while the employee pays 20% through payroll deduction. Per Made Tech, there is no information provided about medical, dental, and vision premium splits. The difference is that OpenGov specifies a premium split, whereas Made Tech does not provide any details on this topic.",
       "citations": [
         {
           "file_path": "health-insurance-coverage.md",
@@ -1204,7 +1210,7 @@
         "surfaces_both_match": false,
         "faithfulness": {
           "score": 1.0,
-          "reasoning": "The answer accurately reflects the context provided for OpenGov, stating that the company pays 80% of the premium cost for medical, dental, and vision coverage, while the employee pays 20% through payroll deduction. The context does not provide information about Made Tech, and the answer correctly notes this. All factual claims are directly supported by the context.",
+          "reasoning": "The answer accurately reflects the context provided. It states that OpenGov pays 80% of the premium cost for medical, dental, and vision coverage, while the employee pays 20% through payroll deduction, which is directly supported by the context. It also correctly notes that no information about premium splits is provided for Made Tech, which is consistent with the absence of such details in the context.",
           "error": null
         },
         "error": false
@@ -1221,8 +1227,8 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 3456.2459999997373,
-      "answer": "The workplace pension provider is Scottish Widows, and the matching model involves Made Tech matching the level of contribution employees decide to make, with specific matching percentages based on employee grade.",
+      "latency_ms": 3473.127100000056,
+      "answer": "The workplace pension provider is Scottish Widows, and the matching model involves Made Tech matching the level of contribution an employee decides to make, with specific matching percentages based on the employee's grade.",
       "citations": [
         {
           "file_path": "pension-scheme.md",
@@ -1245,7 +1251,7 @@
         "surfaces_both_match": true,
         "faithfulness": {
           "score": 1.0,
-          "reasoning": "The answer accurately identifies Scottish Widows as the workplace pension provider and describes the matching model where Made Tech matches employee contributions, with specific percentages based on employee grade. All these details are directly supported by the provided context.",
+          "reasoning": "The answer correctly identifies Scottish Widows as the workplace pension provider and accurately describes the matching model, where Made Tech matches the level of contribution an employee decides to make, with specific matching percentages based on the employee's grade. All these details are directly supported by the provided context.",
           "error": null
         },
         "error": false
@@ -1262,8 +1268,8 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 3202.5108999987424,
-      "answer": "Per Made Tech, employees have a \u00a3250 Work Ready allowance for essential home office equipment, provided they complete DSE training and assessment. Eligible items include monitors, ergonomic chairs, and keyboards, among others. Per OpenGov, there is no specific mention of a budget for home office equipment, but office supplies are reimbursable if pre-approved and under $1,000. The difference is that Made Tech explicitly provides a dedicated budget for home office equipment, while OpenGov does not.",
+      "latency_ms": 5979.202099999384,
+      "answer": "Per Made Tech, employees have a \u00a3250 Work Ready allowance for essential home office equipment, provided they complete DSE training and assessment. Eligible items include monitors, ergonomic chairs, and headsets, among others. Per OpenGov, there is no specific mention of a budget for home office equipment, but office supplies are reimbursable if pre-approved. The key difference is that Made Tech explicitly provides a dedicated budget for home office equipment, while OpenGov does not.",
       "citations": [
         {
           "file_path": "equipment-and-work-ready-budget.pdf",
@@ -1292,7 +1298,7 @@
         "surfaces_both_match": false,
         "faithfulness": {
           "score": 1.0,
-          "reasoning": "The answer is fully supported by the context. The Made Tech policy explicitly states that employees have a \u00a3250 Work Ready allowance for essential home office equipment, contingent on completing DSE training and assessment. Eligible items such as monitors, ergonomic chairs, and keyboards are listed in the context. The OpenGov policy does not mention a specific budget for home office equipment but does allow for reimbursement of office supplies if pre-approved and under $1,000. The answer accurately reflects these details and the distinction between the two organizations' policies.",
+          "reasoning": "The answer is fully supported by the context. The Made Tech policy explicitly states that employees have a \u00a3250 Work Ready allowance for essential home office equipment, contingent on completing DSE training and assessment. The eligible items listed in the answer (monitors, ergonomic chairs, headsets) are also directly mentioned in the context. For OpenGov, the context confirms that office supplies are reimbursable if pre-approved, but there is no specific mention of a dedicated budget for home office equipment. The comparison between the two organizations is accurate and directly supported by the provided context.",
           "error": null
         },
         "error": false
@@ -1309,7 +1315,7 @@
       "expected_refusal": false,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 2338.8474000003043,
+      "latency_ms": 2972.5070000004052,
       "answer": "Media inquiries directly pertaining to the organization, its employees, products, positions, or related operations should be referred to the Executive Director.",
       "citations": [
         {
@@ -1348,7 +1354,7 @@
       "expected_refusal": true,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 2533.9426999998977,
+      "latency_ms": 2692.6165000004403,
       "answer": "I don't have information about that in our HR policies. You may want to consult your manager or HR directly.",
       "citations": [],
       "retrieval_scores": [
@@ -1376,7 +1382,7 @@
       "expected_refusal": true,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 1772.7751000002172,
+      "latency_ms": 2543.8169999997626,
       "answer": "I don't have information about that in our HR policies. You may want to consult your manager or HR directly.",
       "citations": [],
       "retrieval_scores": [
@@ -1404,7 +1410,7 @@
       "expected_refusal": true,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 1691.2630000006175,
+      "latency_ms": 2302.0556999999826,
       "answer": "I don't have information about that in our HR policies. You may want to consult your manager or HR directly.",
       "citations": [],
       "retrieval_scores": [
@@ -1432,7 +1438,7 @@
       "expected_refusal": true,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 2136.1568000011175,
+      "latency_ms": 2402.54509999977,
       "answer": "I don't have information about that in our HR policies. You may want to consult your manager or HR directly.",
       "citations": [],
       "retrieval_scores": [
@@ -1460,7 +1466,7 @@
       "expected_refusal": true,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 2108.459099999891,
+      "latency_ms": 2218.0256999999983,
       "answer": "I don't have information about that in our HR policies. You may want to consult your manager or HR directly.",
       "citations": [],
       "retrieval_scores": [
@@ -1488,7 +1494,7 @@
       "expected_refusal": true,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 2059.5319000003656,
+      "latency_ms": 1881.633699998929,
       "answer": "I don't have information about that in our HR policies. You may want to consult your manager or HR directly.",
       "citations": [],
       "retrieval_scores": [
@@ -1516,7 +1522,7 @@
       "expected_refusal": true,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 1670.503400000598,
+      "latency_ms": 1677.2479000010208,
       "answer": "I don't have information about that in our HR policies. You may want to consult your manager or HR directly.",
       "citations": [],
       "retrieval_scores": [
@@ -1544,7 +1550,7 @@
       "expected_refusal": true,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 2530.261800000517,
+      "latency_ms": 2223.326699999234,
       "answer": "I don't have information about that in our HR policies. You may want to consult your manager or HR directly.",
       "citations": [],
       "retrieval_scores": [
@@ -1572,7 +1578,7 @@
       "expected_refusal": true,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 1442.1638999992865,
+      "latency_ms": 1962.5869000010425,
       "answer": "I don't have information about that in our HR policies. You may want to consult your manager or HR directly.",
       "citations": [],
       "retrieval_scores": [
@@ -1600,7 +1606,7 @@
       "expected_refusal": true,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 29.89260000140348,
+      "latency_ms": 15.844300000026124,
       "answer": "I don't have information about that in our HR policies. You may want to consult your manager or HR directly.",
       "citations": [],
       "retrieval_scores": [],
@@ -1623,7 +1629,7 @@
       "expected_refusal": true,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 924.5649999993475,
+      "latency_ms": 537.8713999998581,
       "answer": "I don't have information about that in our HR policies. You may want to consult your manager or HR directly.",
       "citations": [],
       "retrieval_scores": [
@@ -1651,7 +1657,7 @@
       "expected_refusal": true,
       "expected_surfaces_both_sources": false,
       "http_status": 200,
-      "latency_ms": 2402.5203000001056,
+      "latency_ms": 1985.0274000000354,
       "answer": "I don't have information about that in our HR policies. You may want to consult your manager or HR directly.",
       "citations": [],
       "retrieval_scores": [

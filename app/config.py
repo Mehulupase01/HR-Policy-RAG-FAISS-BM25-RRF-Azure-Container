@@ -33,6 +33,12 @@ class Settings(BaseSettings):
         default=None,
         alias="APPLICATIONINSIGHTS_CONNECTION_STRING",
     )
+    rate_limit_enabled: bool = Field(default=True, alias="RATE_LIMIT_ENABLED")
+    rate_limit_requests: int = Field(default=20, alias="RATE_LIMIT_REQUESTS")
+    rate_limit_window_seconds: int = Field(
+        default=60,
+        alias="RATE_LIMIT_WINDOW_SECONDS",
+    )
 
     model_config = SettingsConfigDict(
         env_file=Path(__file__).resolve().parent.parent / ".env",

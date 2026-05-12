@@ -3,6 +3,7 @@
 .env.local
 .env.*.local
 !.env.example
+.azure-personal-deploy.json
 # Python
 __pycache__/
 *.pyc

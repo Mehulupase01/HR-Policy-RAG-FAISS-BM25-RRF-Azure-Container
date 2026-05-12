@@ -23,6 +23,7 @@ from app.ingest.blob_store import BlobIndexStore, INDEX_FILES
 from app.ingest.embedder import Embedder
 from app.observability.logging import configure_json_logging
 from app.observability.middleware import RequestIdMiddleware
+from app.observability.rate_limit import QueryRateLimitMiddleware
 from app.observability.telemetry import configure_azure_monitor_telemetry
 from app.retrieval.retriever import HybridRetriever
 
@@ -147,10 +148,17 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
+    settings = get_settings()
     app = FastAPI(
         title="Refreshworks AI HR Policy RAG API",
         version="0.1.0",
         lifespan=lifespan,
+    )
+    app.add_middleware(
+        QueryRateLimitMiddleware,
+        enabled=settings.rate_limit_enabled,
+        requests_per_window=settings.rate_limit_requests,
+        window_seconds=settings.rate_limit_window_seconds,
     )
     app.add_middleware(RequestIdMiddleware)
     app.include_router(health_router)

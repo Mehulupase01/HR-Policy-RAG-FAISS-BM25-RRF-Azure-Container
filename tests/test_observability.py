@@ -14,6 +14,7 @@ from app.observability.context import (
 )
 from app.observability.logging import JsonFormatter
 from app.observability.middleware import RequestIdMiddleware
+from app.observability.rate_limit import QueryRateLimitMiddleware
 from app.observability.telemetry import configure_azure_monitor_telemetry
 
 
@@ -61,3 +62,55 @@ def test_azure_monitor_telemetry_noops_without_connection_string(monkeypatch) ->
     monkeypatch.delenv("APPLICATIONINSIGHTS_CONNECTION_STRING", raising=False)
 
     configure_azure_monitor_telemetry()
+
+
+def test_query_rate_limit_blocks_only_query_requests() -> None:
+    app = FastAPI()
+    app.add_middleware(
+        QueryRateLimitMiddleware,
+        enabled=True,
+        requests_per_window=2,
+        window_seconds=60,
+    )
+
+    @app.post("/query")
+    def query() -> dict[str, str]:
+        return {"status": "ok"}
+
+    @app.get("/healthz")
+    def healthz() -> dict[str, str]:
+        return {"status": "ok"}
+
+    client = TestClient(app)
+
+    assert client.post("/query").status_code == 200
+    assert client.post("/query").status_code == 200
+    limited = client.post("/query")
+
+    assert limited.status_code == 429
+    assert limited.headers["Retry-After"]
+    assert limited.json() == {
+        "title": "Too Many Requests",
+        "detail": "Rate limit exceeded. Please retry later.",
+        "status": 429,
+    }
+    assert client.get("/healthz").status_code == 200
+
+
+def test_query_rate_limit_can_be_disabled() -> None:
+    app = FastAPI()
+    app.add_middleware(
+        QueryRateLimitMiddleware,
+        enabled=False,
+        requests_per_window=1,
+        window_seconds=60,
+    )
+
+    @app.post("/query")
+    def query() -> dict[str, str]:
+        return {"status": "ok"}
+
+    client = TestClient(app)
+
+    assert client.post("/query").status_code == 200
+    assert client.post("/query").status_code == 200
