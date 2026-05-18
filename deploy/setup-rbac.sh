@@ -17,7 +17,7 @@ export MSYS_NO_PATHCONV=1
 
 SUBSCRIPTION_ID="7550559f-20b4-4528-ab93-4add5a0d6c7d"
 TENANT_ID="07f7e037-e81e-4516-ba96-62f787723bb0"
-RESOURCE_GROUP="rg-rag-interview-mehul"
+RESOURCE_GROUP="rg-hr-rag-mehul"
 LOCATION="swedencentral"
 IDENTITY_NAME="id-rag-app"
 STORAGE_BASENAME="stragragintvwmehul"

@@ -1,4 +1,4 @@
-"""Adapter from our hybrid retriever to the Refreshworks SDK Retriever protocol."""
+"""Adapter from the hybrid retriever to the reference SDK retriever protocol."""
 
 from __future__ import annotations
 

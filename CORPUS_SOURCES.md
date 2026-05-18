@@ -17,12 +17,12 @@ A small US nonprofit's policy manual. Formal, legalistic register; US-flavored (
 A UK technology consultancy's open-source company handbook. Conversational, modern register; UK-flavored (statutory pay, GBP-denominated, references to gov.uk, NHS-adjacent benefits). Files were copied as-is from the upstream repo and renamed to kebab-case for consistency. Five of the longer files were converted to PDF (`parental-leave`, `holiday`, `hybrid-working`, `whistleblowing`, `equipment-and-work-ready-budget`) via `pandoc --pdf-engine=typst`.
 
 - **Upstream:** <https://github.com/madetech/handbook>
-- **License:** Not declared in the upstream repo. The repo is public and self-describes as "the Made Tech open source company handbook." Used here for an internal interview corpus only — not redistributed.
+- **License:** Not declared in the upstream repo. The repo is public and self-describes as "the Made Tech open source company handbook." Used here as a local development corpus only — not redistributed.
 - **Files:** `parental-leave-policy.pdf`, `holiday-policy.pdf`, `hybrid-working-policy.pdf`, `flexible-working-policy.md`, `sick-leave-procedures.md`, `leave-types-overview.md`, `raising-an-issue.md`, `whistleblowing-policy.md`, `pension-scheme.md`, `equipment-and-work-ready-budget.pdf`
 
 ## Format mix
 
-24 markdown + 8 PDFs at the time of writing — intentional, so the candidate has to handle both extraction paths. The PDFs were generated via `pandoc … --pdf-engine=typst`, except for `opengov-handbook-consolidated.pdf` which is the upstream original.
+24 markdown + 8 PDFs at the time of writing — intentional, so the ingestion pipeline has to handle both extraction paths. The PDFs were generated via `pandoc … --pdf-engine=typst`, except for `opengov-handbook-consolidated.pdf` which is the upstream original.
 
 ## Known quirks (left in deliberately)
 

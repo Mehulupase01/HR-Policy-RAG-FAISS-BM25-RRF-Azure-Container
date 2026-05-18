@@ -150,7 +150,7 @@ def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
     settings = get_settings()
     app = FastAPI(
-        title="Refreshworks AI HR Policy RAG API",
+        title="Azure HR Policy RAG API",
         version="0.1.0",
         lifespan=lifespan,
     )

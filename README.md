@@ -15,7 +15,7 @@ This is a complete HR policy RAG system built around two real employee handbooks
 
 The application lets an employee ask a natural-language question like "How many sick days do I get?", retrieves relevant policy passages, generates a grounded answer with Azure OpenAI `gpt-4o`, returns citations, refuses questions outside the HR corpus, and explicitly calls out when the two handbooks disagree.
 
-The system was built from a Refreshworks SDK template, but the runtime was moved from Azure Functions to a containerized FastAPI service so it can run on Azure Container Apps. The SDK was not thrown away. Its useful abstractions were kept, wrapped, and extended where appropriate.
+The runtime is a containerized FastAPI service designed for Azure Container Apps. The codebase keeps a clean separation between ingestion, retrieval, generation, guardrails, observability, and deployment concerns.
 
 ---
 
@@ -260,7 +260,7 @@ The project uses Azure in the places where it matters:
 | Azure Monitor / App Insights | Receives OpenTelemetry traces, logs, and request telemetry |
 | Azure Cost Management | Used during deployment testing with a budget alert |
 
-The real Azure deployment was validated on a personal Azure subscription after the original sandbox account lacked RBAC permissions for role assignment. It was later decommissioned intentionally to preserve Azure credits.
+The real Azure deployment was validated on a personal Azure subscription and later decommissioned intentionally to preserve Azure credits.
 
 ---
 
@@ -541,23 +541,6 @@ bash deploy/setup-rbac.sh
 bash deploy/deploy.sh
 ```
 
-### Why the original sandbox deployment was blocked
-
-The original Refreshworks sandbox account did not have permission to create Azure role assignments:
-
-```text
-Microsoft.Authorization/roleAssignments/write denied
-```
-
-That blocked the managed identity from being granted:
-
-- `Storage Blob Data Reader` on the Blob container
-- `AcrPull` on the container registry
-
-This was an Azure RBAC permission issue, not an architecture issue. The same deployment pattern worked later on a personal Azure subscription with the necessary permissions.
-
----
-
 ## Quick Start
 
 ### 1. Create environment
@@ -638,7 +621,7 @@ pytest
 |-- data/index/           Local retrieval artifacts
 |-- deploy/               Azure CLI deployment scripts
 |-- eval/                 Test sets, eval runner, reports
-|-- sdk/                  Original Refreshworks SDK template
+|-- sdk/                  Reference SDK modules and supporting template code
 |-- tests/                Pytest suite
 |-- CORPUS_SOURCES.md     Source mapping and corpus notes
 |-- Dockerfile            Multi-stage production container

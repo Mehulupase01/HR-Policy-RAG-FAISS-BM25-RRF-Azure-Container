@@ -15,8 +15,8 @@ try:
     from qdrant_client import QdrantClient
     from qdrant_client.http.exceptions import ResponseHandlingException
 except ImportError:
-    QdrantClient = None  # type: ignore[assignment,misc]
-    ResponseHandlingException = Exception  # type: ignore[assignment,misc]
+    QdrantClient = None  # type: ignore[misc]
+    ResponseHandlingException = Exception  # type: ignore[misc]
 
 
 class QdrantRetriever:
