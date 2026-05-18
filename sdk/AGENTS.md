@@ -94,8 +94,8 @@ git push origin "dev - Exact verbeteren"
 
 ### Development Approach
 
-- AI follows the phased plan in `planning/plan.md`.
-- AI updates `planning/` artifacts before making code changes.
+- AI follows the repository README and current issue/task context.
+- AI documents material design choices in the main project documentation when useful.
 - AI runs tests (`make test`) before committing.
 - AI creates `.env.example` entries when new environment variables are introduced.
 

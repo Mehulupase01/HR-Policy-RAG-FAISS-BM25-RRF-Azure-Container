@@ -12,13 +12,10 @@ __pycache__/
 .mypy_cache/
 
 tests/
-Chats/
-chats/
 eval/
 data/
 corpus/
 
-sdk/planning/
 sdk/qdrant/
 
 .vscode/

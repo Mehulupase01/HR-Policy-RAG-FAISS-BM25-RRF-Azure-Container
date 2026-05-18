@@ -1,95 +1,197 @@
-# Refreshworks AI HR Policy RAG
+# Azure HR Policy RAG Assistant
+### Production-shaped Retrieval-Augmented Generation over real HR handbooks
 
-Production-shaped retrieval-augmented generation over two real HR handbooks: OpenGov Foundation (US) and Made Tech (UK). The API answers employee policy questions with citations, refuses out-of-corpus requests, and explicitly surfaces disagreements when both handbooks cover the same topic differently.
+![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-API-009688?logo=fastapi&logoColor=white)
+![Azure](https://img.shields.io/badge/Azure-Container%20Apps-0078D4?logo=microsoftazure&logoColor=white)
+![Azure OpenAI](https://img.shields.io/badge/Azure%20OpenAI-gpt--4o-0078D4)
+![FAISS](https://img.shields.io/badge/FAISS-Vector%20Search-4B8BBE)
+![BM25](https://img.shields.io/badge/BM25-Hybrid%20Retrieval-6A5ACD)
+![Docker](https://img.shields.io/badge/Docker-Multi--stage-2496ED?logo=docker&logoColor=white)
+![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-Instrumented-7B61FF)
+![Pytest](https://img.shields.io/badge/Tests-75%20passing-2E8B57)
 
-This repository started from the Refreshworks SDK template, but replaces the Azure Functions runtime with a FastAPI container while preserving the SDK's core intent: stable retrieval/generation abstractions, explicit provenance, and deployment to Azure.
+This is a complete HR policy RAG system built around two real employee handbooks: OpenGov Foundation in the US and Made Tech in the UK.
 
-## 1. Overview And Current Status
+The application lets an employee ask a natural-language question like "How many sick days do I get?", retrieves relevant policy passages, generates a grounded answer with Azure OpenAI `gpt-4o`, returns citations, refuses questions outside the HR corpus, and explicitly calls out when the two handbooks disagree.
 
-The system ingests 32 source files from `corpus/`: 24 markdown files and 8 PDFs. One duplicate consolidated PDF is skipped at ingestion, so the searchable index contains 31 documents and 51 final chunks:
+The system was built from a Refreshworks SDK template, but the runtime was moved from Azure Functions to a containerized FastAPI service so it can run on Azure Container Apps. The SDK was not thrown away. Its useful abstractions were kept, wrapped, and extended where appropriate.
 
-| Source | Indexed Chunks |
-|---|---:|
-| OpenGov Foundation | 22 |
-| Made Tech | 29 |
+---
 
-The current local RAG stack is fully implemented and evaluated:
+## Table of Contents
 
-| Capability | Status |
-|---|---|
-| FastAPI `/query` endpoint | Implemented |
-| Markdown + PDF loading | Implemented |
-| Header-aware and PDF paragraph chunking | Implemented |
-| Azure OpenAI embeddings | Implemented |
-| FAISS dense index | Implemented |
-| BM25 lexical index | Implemented |
-| RRF hybrid retrieval | Implemented |
-| GPT-4o grounded generation | Implemented |
-| Citation validation | Implemented |
-| Out-of-corpus refusal | Implemented |
-| Multi-source disagreement handling | Implemented |
-| Evaluation harness | Implemented |
-| Structured JSON logging | Implemented |
-| Azure Monitor OpenTelemetry wiring | Implemented locally, live verification blocked by RBAC |
-| Real RAG Azure Container Apps deployment | Scripted, blocked by RBAC |
+- [Short Abstract](#short-abstract)
+- [Deep Introduction](#deep-introduction)
+- [The Entire System Explained](#the-entire-system-explained)
+- [Why Azure Matters Here](#why-azure-matters-here)
+- [Retrieval And Generation Design](#retrieval-and-generation-design)
+- [Quality Validation](#quality-validation)
+- [Security And Operations](#security-and-operations)
+- [Azure Deployment](#azure-deployment)
+- [Quick Start](#quick-start)
+- [Project Layout](#project-layout)
+- [Key Decisions](#key-decisions)
+- [Future Developments](#future-developments)
 
-Live deployed URL for demo fallback:
+---
 
-```text
-https://hr-rag-stub.lemonisland-a021bbbf.swedencentral.azurecontainerapps.io
-```
+## Short Abstract
 
-Important: this URL is the Phase 3 stub deployment. It proves the Azure Container Apps build/deploy path works, but it does not serve the final RAG pipeline. The real app deployment script exists as `deploy/deploy.sh`, but the Azure account available during implementation lacked `Microsoft.Authorization/roleAssignments/write`, so the user-assigned managed identity could not be granted Blob/ACR RBAC roles. The real deployment is therefore documented as blocked, not silently claimed as complete.
+Most internal company policy bots fail in three predictable ways:
 
-## 2. Architecture And Phase Walkthrough
+1. They confidently answer questions that are not in the policy documents.
+2. They cite irrelevant chunks just because those chunks were retrieved.
+3. They merge conflicting policies from different sources into one fake unified answer.
 
-Runtime request path:
+This project focuses on those failure modes directly.
+
+It uses a hybrid retrieval stack: FAISS for semantic search, BM25 for keyword search, and Reciprocal Rank Fusion to combine both. It then uses guardrails before generation: an out-of-corpus detector to decide when to refuse, and a disagreement detector to decide when the answer should compare OpenGov and Made Tech instead of blending them.
+
+The backend is production-shaped:
+
+- FastAPI API with Pydantic contracts
+- Azure OpenAI for embeddings and generation
+- FAISS + BM25 indexes persisted to Azure Blob Storage
+- Docker multi-stage production image
+- Azure Container Apps deployment scripts
+- Managed identity for Blob access
+- Container Apps secrets for sensitive values
+- Structured JSON logging
+- Request IDs
+- Azure Monitor OpenTelemetry
+- Rate limiting on the public query endpoint
+- Reproducible evaluation harness
+
+The Azure deployment was successfully validated on a personal Azure subscription and then intentionally decommissioned to avoid ongoing credit spend.
+
+---
+
+## Deep Introduction
+
+### The problem this project solves
+
+HR policy questions sound simple, but they are surprisingly easy to answer badly.
+
+An employee might ask:
+
+- "How many sick days do I get?"
+- "Can I work remotely?"
+- "Who do I report misconduct to?"
+- "What is the dental insurance plan?"
+
+Those questions create different retrieval problems.
+
+Some answers are straightforward and live in one source. Some need exact keyword matching, like FMLA or statutory sick pay. Some need semantic matching, where the employee says "ill" but the policy says "sick". Some should be refused because the corpus does not contain that information. And some are tricky because both OpenGov and Made Tech talk about the same topic, but with different rules.
+
+That last case is especially important. A naive RAG system tends to average the two policies into a single answer. That is wrong. If OpenGov and Made Tech disagree, the assistant should say so clearly:
+
+- Per OpenGov, the rule is X.
+- Per Made Tech, the rule is Y.
+- The difference is Z.
+
+This project is built around that level of reliability rather than just "retrieve a chunk and ask an LLM".
+
+### What makes this different from a simple document chatbot
+
+This is not a one-file demo that uploads PDFs into a vector database and hopes for the best.
+
+The system has a full retrieval lifecycle:
+
+1. Load real markdown and PDF policy files.
+2. Attach hardcoded source provenance from `CORPUS_SOURCES.md`.
+3. Skip a duplicate consolidated PDF to avoid biased retrieval.
+4. Chunk markdown and PDFs differently.
+5. Embed chunks with Azure OpenAI `text-embedding-3-large`.
+6. Persist the artifact layer as parquet, FAISS, and BM25.
+7. Load indexes at startup locally or from Azure Blob Storage.
+8. Retrieve with hybrid dense + lexical search.
+9. Run out-of-corpus and disagreement guardrails.
+10. Generate a JSON-mode answer with validated citations.
+
+The result is small enough to understand end-to-end, but serious enough to show the shape of a real Azure AI service.
+
+---
+
+## The Entire System Explained
+
+### 1. High-level architecture
 
 ```mermaid
-flowchart LR
-    Client["Client or evaluator"] --> API["FastAPI app<br/>POST /query"]
-    API --> Guard["Validation + request_id middleware"]
-    Guard --> Retriever["HybridRetriever"]
-    Retriever --> Embed["Azure OpenAI embeddings<br/>text-embedding-3-large"]
-    Retriever --> FAISS["FAISS IndexFlatIP<br/>dense search"]
-    Retriever --> BM25["BM25Okapi<br/>lexical search"]
-    FAISS --> RRF["Reciprocal Rank Fusion<br/>k=60"]
-    BM25 --> RRF
-    RRF --> OOF["Out-of-corpus detector<br/>RRF threshold + GPT-4o judge"]
-    OOF --> Disagree["Disagreement detector<br/>source split + centroid cosine"]
-    Disagree --> Answerer["Answerer<br/>validated JSON mode"]
-    Answerer --> GPT["Azure OpenAI gpt-4o"]
-    GPT --> API
-    API --> Client
+flowchart TB
+    User["Employee or evaluator"] --> API["FastAPI service<br/>POST /query"]
 
-    Blob["Azure Blob Storage<br/>embeddings.parquet + faiss.index + bm25.pkl"] -. startup download .-> Retriever
+    subgraph App["Containerized RAG application"]
+        API --> Validate["Pydantic validation<br/>request ID middleware<br/>rate limiting"]
+        Validate --> Retrieve["HybridRetriever"]
+        Retrieve --> Dense["FAISS dense search<br/>IndexFlatIP"]
+        Retrieve --> Lexical["BM25 lexical search"]
+        Dense --> Fuse["Reciprocal Rank Fusion<br/>k = 60"]
+        Lexical --> Fuse
+        Fuse --> OOF["Out-of-corpus detector<br/>score signal + GPT judge"]
+        OOF --> Disagree["Disagreement detector<br/>source split + centroid similarity"]
+        Disagree --> Answer["Answerer<br/>JSON-mode GPT-4o"]
+        Answer --> Citations["Citation validator<br/>drop hallucinated keys"]
+    end
+
+    Citations --> Response["Answer + citations<br/>retrieval scores"]
+    Response --> User
+
+    Blob["Azure Blob Storage<br/>embeddings.parquet<br/>faiss.index<br/>bm25.pkl"] -. "download on startup" .-> Retrieve
+    AOAI["Azure OpenAI<br/>gpt-4o<br/>text-embedding-3-large"] <--> Retrieve
+    AOAI <--> OOF
+    AOAI <--> Answer
 ```
 
-Ingestion path:
+The system has three layers:
+
+**Data layer**
+The HR corpus is loaded from local files, normalized into `RawDocument` records, split into chunks, embedded, and persisted as retrieval artifacts. The artifacts are small enough to load into memory, so there is no need to operate a separate vector database for this corpus size.
+
+**Retrieval and reasoning layer**
+Runtime questions are embedded and searched through FAISS. The same query is also tokenized through BM25. The two ranked lists are fused with Reciprocal Rank Fusion, then checked for out-of-corpus risk and source disagreement.
+
+**API and operations layer**
+FastAPI exposes `/query`, `/healthz`, and `/readyz`. The container is designed for Azure Container Apps, with secrets, managed identity, JSON logs, request IDs, Azure Monitor telemetry, and rate limiting.
+
+### 2. Ingestion lifecycle
 
 ```mermaid
 sequenceDiagram
-    participant Corpus as corpus/
-    participant Loader as CorpusLoader
-    participant Chunker as Chunker
-    participant Embedder as Azure OpenAI Embedder
-    participant Indexer as Index Builder
-    participant Blob as Azure Blob Storage
+    participant C as corpus/
+    participant L as CorpusLoader
+    participant CH as Chunker
+    participant E as Azure OpenAI Embedder
+    participant I as Indexer
+    participant B as Azure Blob Storage
 
-    Corpus->>Loader: Read markdown and PDFs
-    Loader->>Loader: Apply hardcoded source map
-    Loader->>Loader: Skip duplicate consolidated PDF
-    Loader->>Chunker: RawDocument records
-    Chunker->>Embedder: Chunk text with provenance
-    Embedder-->>Chunker: 3072-d vectors
-    Chunker->>Indexer: Chunks with embeddings
-    Indexer->>Indexer: Write embeddings.parquet
-    Indexer->>Indexer: Normalize vectors and write faiss.index
-    Indexer->>Indexer: Build bm25.pkl with shared tokenizer
-    Indexer->>Blob: Upload artifacts under latest/
+    C->>L: Read 24 markdown + 8 PDFs
+    L->>L: Use hardcoded source mapping
+    L->>L: Skip duplicate consolidated PDF
+    L->>CH: RawDocument objects
+    CH->>CH: Markdown heading chunks
+    CH->>CH: PDF paragraph chunks
+    CH->>E: Chunk text + breadcrumbs
+    E->>E: Token bucket + retry handling
+    E-->>CH: 3072-d embeddings
+    CH->>I: Chunks with vectors
+    I->>I: Write embeddings.parquet
+    I->>I: Normalize and write faiss.index
+    I->>I: Build bm25.pkl
+    I->>B: Upload artifacts under latest/
 ```
 
-Runtime query path:
+The corpus has 32 files, but only 31 are indexed. The OpenGov consolidated PDF is intentionally skipped because it duplicates the split markdown policies. Indexing it would make OpenGov content appear twice and bias retrieval.
+
+The persisted retrieval layer contains:
+
+| Artifact | Purpose |
+|---|---|
+| `embeddings.parquet` | Chunk metadata, text, token counts, provenance, and embeddings |
+| `faiss.index` | L2-normalized dense vector index for inner-product search |
+| `bm25.pkl` | Persisted lexical index using the same tokenizer as runtime retrieval |
+
+### 3. Query lifecycle
 
 ```mermaid
 sequenceDiagram
@@ -101,228 +203,193 @@ sequenceDiagram
     participant OAI as Azure OpenAI
 
     U->>API: POST /query
+    API->>API: Validate request and assign request_id
     API->>R: retrieve(question, top_k=8)
-    R->>OAI: embed query
-    R->>R: FAISS + BM25 + RRF
-    R-->>API: RetrievedChunk list
-    API->>G: out-of-corpus decision
-    G->>OAI: strict yes/no judge
-    G-->>API: refuse or continue
-    API->>G: disagreement detection
-    G-->>API: branch prompt or normal prompt
-    API->>A: answer(question, retrieved)
-    A->>OAI: GPT-4o JSON-mode answer
-    A-->>API: answer + validated citations
-    API-->>U: QueryResponse
+    R->>OAI: Embed question
+    R->>R: Dense FAISS search
+    R->>R: BM25 keyword search
+    R->>R: RRF fusion
+    R-->>API: Retrieved chunks
+    API->>G: Out-of-corpus check
+    G->>OAI: Strict yes/no judge
+    G-->>API: Refuse or continue
+    API->>G: Disagreement check
+    G-->>API: Normal or comparison prompt
+    API->>A: Generate answer
+    A->>OAI: GPT-4o JSON mode
+    A->>A: Validate citation keys
+    A-->>API: AnsweredQuery
+    API-->>U: JSON answer with citations
 ```
 
-Phase overview:
+The API returns:
 
-| Phase | What Changed | Current Status |
-|---|---|---|
-| 1 Setup and Azure access | Azure account, resource group, OpenAI resource, local env setup | Completed by project owner |
-| 2 Repo scaffolding and SDK exploration | Mapped SDK core abstractions, Azure Functions glue, Qdrant coupling | Completed |
-| 3 Deployable skeleton | FastAPI app, Dockerfile, stub Container Apps deployment | Completed; stub URL live |
-| 4 Corpus loading | `RawDocument`, hardcoded source mapping, duplicate skip, PDF fallback extraction | Completed |
-| 5 Chunking | Header-aware markdown chunks, PDF paragraph packing, token counts, metadata | Completed |
-| 6 Embeddings and indexes | Azure embeddings, FAISS, BM25, parquet, Blob persistence | Completed |
-| 7 Retrieval | Dense + lexical retrieval with shared tokenizer and RRF fusion | Completed |
-| 8 Generation and citations | GPT-4o answerer, prompt, JSON mode, citation validation, real `/query` | Completed |
-| 9 Guardrails | Out-of-corpus detector, disagreement detector, prompt branching | Completed |
-| 10 Evaluation | 40-case test set, runner, report, quality bar | Completed |
-| 11 Real deployment | Managed identity, Blob-backed startup, Container Apps secret refs | Scripted but RBAC-blocked |
-| 12 Observability and polish | JSON logs, request IDs, Azure Monitor OpenTelemetry wiring | Implemented locally; live telemetry blocked by Phase 11 RBAC |
+```json
+{
+  "answer": "Per OpenGov ... Per Made Tech ...",
+  "citations": [
+    {
+      "file_path": "sick-leave-policy.md",
+      "source": "opengov",
+      "chunk_idx": 0,
+      "snippet": "..."
+    }
+  ],
+  "retrieval_scores": [0.0325, 0.0314, 0.0307]
+}
+```
 
-## 3. Decisions Summary
+---
 
-Full reasoning lives in [DECISIONS.md](DECISIONS.md). The short version:
+## Why Azure Matters Here
 
-| Decision | Summary |
+This project is deliberately Azure-first.
+
+That matters because a lot of European companies already standardize on Microsoft infrastructure: Azure subscriptions, Entra ID, managed identities, Azure Monitor, private networking, and governance policies. A useful AI system in that environment should not just run locally. It should fit the way Azure teams actually operate.
+
+The project uses Azure in the places where it matters:
+
+| Azure Service | How it is used |
 |---|---|
-| D-01 Compute target | Use Azure Container Apps because the assignment requires it. |
-| D-02 Web framework | Use FastAPI for Pydantic validation, clean routing, and container-friendly runtime. |
-| D-03 Vector store | Use in-memory FAISS persisted as `embeddings.parquet`, `faiss.index`, and `bm25.pkl`. |
-| D-04 Embedding model | Use Azure OpenAI `text-embedding-3-large` because it is provided and high-quality. |
-| D-05 LLM | Use Azure OpenAI `gpt-4o` for final grounded answers. |
-| D-06 Markdown chunking | Use heading-aware markdown chunking with breadcrumbs. |
-| D-07 PDF chunking | Use paragraph packing with form-feed page markers for PDFs. |
-| D-08 Chunk size | Use 800 max tokens, 100 overlap, 50 min section tokens. |
-| D-09 Tiny/duplicate files | Keep tiny files whole and skip the duplicate OpenGov consolidated PDF. |
-| D-10 Retrieval | Use FAISS + BM25 fused by Reciprocal Rank Fusion. |
-| D-11 `top_k` | Retrieve 8 chunks for guardrails and present 4 to generation. |
-| D-12 Citations | Return structured citations and drop hallucinated citation keys. |
-| D-13 Out-of-corpus handling | Refuse only when score threshold and GPT-4o judge agree. |
-| D-14 Disagreement handling | Detect multi-source topic overlap and inject compare/attribute instructions. |
-| D-15 Evaluation | Use a hand-crafted 40-case harness with explicit quality bars. |
-| D-16 Secrets and Blob auth | Use Container Apps secrets for OpenAI and managed identity for Blob reads. |
+| Azure OpenAI | `gpt-4o` for answers and `text-embedding-3-large` for embeddings |
+| Azure Container Apps | Serverless container hosting for the FastAPI app |
+| Azure Container Registry | Stores the production Docker image |
+| Azure Blob Storage | Stores FAISS, BM25, and parquet retrieval artifacts |
+| Managed Identity | Lets the app read Blob artifacts without storage keys |
+| Container Apps Secrets | Stores the Azure OpenAI key and App Insights connection string |
+| Azure Monitor / App Insights | Receives OpenTelemetry traces, logs, and request telemetry |
+| Azure Cost Management | Used during deployment testing with a budget alert |
 
-## 4. Quick Start Local
+The real Azure deployment was validated on a personal Azure subscription after the original sandbox account lacked RBAC permissions for role assignment. It was later decommissioned intentionally to preserve Azure credits.
 
-Prerequisites:
+---
 
-- Python 3.11
-- Conda or another virtual environment manager
-- Azure OpenAI endpoint/key in `.env`
-- Azure CLI login only if uploading/downloading Blob artifacts
+## Retrieval And Generation Design
 
-Clone and set up:
+### Corpus loader
 
-```bash
-git clone https://github.com/Mehulupase01/RAG-implementation-Refreshworks-Mehul.git
-cd RAG-implementation-Refreshworks-Mehul
+Source attribution is explicit, not guessed from filenames. OpenGov and Made Tech files are stored in hardcoded sets from `CORPUS_SOURCES.md`. If an unknown file appears, ingestion fails loudly instead of silently assigning the wrong handbook.
 
-conda create -n rag python=3.11
-conda activate rag
-pip install -r requirements.txt
+That matters because disagreement detection depends on source provenance. A wrong source label would produce wrong answers.
 
-cp .env.example .env
-```
+### Chunking
 
-Fill `.env`:
+Markdown and PDFs are treated differently:
 
-```text
-AZURE_OPENAI_ENDPOINT=...
-AZURE_OPENAI_KEY=...
-AZURE_OPENAI_API_VERSION=2024-10-21
-AZURE_OPENAI_CHAT_DEPLOYMENT=gpt-4o
-AZURE_OPENAI_EMBEDDING_DEPLOYMENT=text-embedding-3-large
-BLOB_ACCOUNT_URL=https://stragragintvwmehul.blob.core.windows.net/
-BLOB_INDEX_CONTAINER=rag-index
-INDEX_BLOB_PREFIX=latest
-INDEX_LOCAL_DIR=data/index
-APPLICATIONINSIGHTS_CONNECTION_STRING=
-```
+| Format | Strategy |
+|---|---|
+| Markdown | Heading-aware chunking using H1-H3 breadcrumbs |
+| PDF | Paragraph packing with page markers from form-feed boundaries |
+| Tiny files | Kept as a single chunk |
+| Long sections | Packed with token overlap |
 
-Build the local index:
+Defaults:
 
-```bash
-python -m app.ingest
-```
-
-Run the API:
-
-```bash
-uvicorn app.main:app --host 127.0.0.1 --port 8000
-```
-
-Try it:
-
-```bash
-curl -X POST http://127.0.0.1:8000/query \
-  -H "Content-Type: application/json" \
-  -d "{\"question\":\"How many sick days do I get?\"}"
-```
-
-Health endpoints:
-
-```bash
-curl http://127.0.0.1:8000/healthz
-curl http://127.0.0.1:8000/readyz
-```
-
-Run tests:
-
-```bash
-pytest tests -q
-```
-
-## 5. Deploy From Scratch
-
-Deployment target:
-
-- Resource group: `rg-rag-interview-mehul`
-- Region: `swedencentral`
-- ACR prefix: `acrragintvwmehul`
-- Container Apps environment: `cae-rag-interview`
-- Stub app: `hr-rag-stub`
-- Real RAG app: `hr-rag-app`
-- Storage container: `rag-index`
-- Managed identity: `id-rag-app`
-- App Insights: `appi-rag-interview`
-
-Script sequence:
-
-```bash
-# 1. Create StorageV2 account and private rag-index container.
-bash deploy/setup-storage.sh
-
-# 2. Build local retrieval artifacts and upload them to Blob if BLOB_ACCOUNT_URL is set.
-python -m app.ingest
-
-# 3. Create/reuse user-assigned identity and grant Blob read access.
-bash deploy/setup-rbac.sh
-
-# 4. Build image in ACR and create/update the real Container App.
-bash deploy/deploy.sh
-```
-
-What `deploy/deploy.sh` does:
-
-- Builds the Docker image in ACR with `az acr build`.
-- Creates/reuses Application Insights.
-- Runs `setup-rbac.sh`.
-- Attaches the user-assigned identity to the Container App.
-- Uses the identity for ACR pulls.
-- Stores the OpenAI key as a Container Apps secret.
-- Sets `AZURE_OPENAI_KEY=secretref:openai-key`.
-- Sets Blob/index env vars including `INDEX_LOCAL_DIR=/tmp/index`.
-- Checks `/healthz` and `/readyz`.
-- Dumps the last 50 Container App logs on failure.
-
-Known deployment roadblock:
-
-The implementation reached ACR build and Blob upload successfully, but the Azure account used during this build could not create role assignments:
-
-```text
-Microsoft.Authorization/roleAssignments/write denied for upasemehul@gmail.com
-```
-
-That blocks:
-
-- assigning `Storage Blob Data Reader` to `id-rag-app` for the `rag-index` container
-- assigning `AcrPull` to `id-rag-app` for ACR image pulls
-- completing the real `hr-rag-app` deployment
-- verifying App Insights traces from the live real app
-
-The fix is to have an Owner or User Access Administrator grant the required RBAC assignments, or temporarily grant that permission to the deployment account. Until then, the Phase 3 stub URL remains the live demo URL for the container pipeline, while the real RAG is validated locally.
-
-## 6. Evaluation Instructions
-
-The evaluation set is hand-written and stored at:
-
-```text
-eval/test_set.json
-```
-
-It contains exactly 40 cases:
-
-| Category | Count |
+| Setting | Value |
 |---|---:|
-| Verbatim | 5 |
-| Paraphrased | 5 |
-| Single-source factual | 6 |
-| Source disagreement | 8 |
-| Single-source-only | 4 |
-| Clearly out-of-corpus | 5 |
-| Plausibly out-of-corpus | 4 |
-| Adversarial | 3 |
+| Max tokens | 800 |
+| Overlap | 100 |
+| Minimum section tokens | 50 |
+| Tiny file threshold | 400 |
 
-Quality bar:
+### Embeddings
 
-| Metric | Bar | Latest Local Result |
-|---|---:|---:|
-| Retrieval recall | >= 0.85 | 0.982 |
-| Refusal accuracy | >= 0.90 | 1.000 |
-| Surfaces both sources | >= 0.75 | 1.000 |
-| Mean faithfulness | >= 0.80 | 0.939 |
-| Error rate | lower is better | 0.000 |
+The embedder wraps Azure OpenAI `text-embedding-3-large` and includes:
 
-Latest local report:
+- batch embedding
+- token counting
+- token bucket rate limiting
+- exponential backoff for rate limits and 5xx errors
+- loud failure on non-retryable 4xx errors
+- skip logic for single inputs above the model token limit
 
-- [eval/results.md](eval/results.md)
-- [eval/results.json](eval/results.json)
+Vectors are not normalized in the embedder. Normalization is done in the indexer, where FAISS search semantics are defined.
 
-Re-run against any API base URL:
+### Indexing
+
+The indexer builds three artifacts:
+
+1. `embeddings.parquet`
+2. `faiss.index`
+3. `bm25.pkl`
+
+FAISS uses `IndexFlatIP(3072)`. Embeddings are normalized with `faiss.normalize_L2()` before insertion so inner product behaves like cosine similarity.
+
+BM25 tokenization is exported as `tokenize_for_bm25(text)` and imported by the retriever. This keeps index-time and query-time lexical tokenization identical.
+
+### Hybrid retrieval
+
+Dense retrieval is good for paraphrase. BM25 is good for exact keywords. The retriever runs both:
+
+```text
+query
+  -> Azure embedding
+  -> FAISS dense top 20
+  -> BM25 lexical top 20
+  -> Reciprocal Rank Fusion
+  -> final top 8
+```
+
+RRF avoids mixing incompatible raw score scales. FAISS scores and BM25 scores live on different numeric ranges, but ranks are comparable.
+
+### Guardrails
+
+The system has two main guardrails.
+
+**Out-of-corpus detector**
+The system refuses only when both signals agree:
+
+- max RRF score is below the threshold
+- GPT-4o judge says the context is insufficient
+
+This avoids refusing every short or unusual query while still blocking hallucinated policy answers.
+
+**Disagreement detector**
+If retrieved chunks contain both OpenGov and Made Tech content, the system compares source centroids. If both sources appear to be talking about the same topic, it injects a prompt instruction telling GPT-4o to present both rules separately.
+
+### Generation
+
+The answerer uses GPT-4o with:
+
+- strict system prompt
+- `temperature=0.0`
+- JSON mode
+- max token cap
+- Pydantic parsing
+- citation key validation
+
+If GPT-4o returns a citation that was not actually in the retrieved context, the app drops that citation and logs a warning.
+
+---
+
+## Quality Validation
+
+This project is tested at three levels:
+
+1. Unit tests for ingestion, chunking, embedding, indexing, retrieval, guardrails, generation, and observability.
+2. API tests with FastAPI `TestClient`.
+3. Evaluation harness against realistic HR questions.
+
+### Test suite
+
+Latest local test run:
+
+```text
+75 passed, 1 skipped
+```
+
+The skipped test is the optional live OpenAI smoke test, which only runs when explicitly enabled.
+
+### Evaluation harness
+
+The evaluation runner posts each case to `/query`, records latency, answer, citations, retrieval scores, and status code, then computes:
+
+- retrieval recall
+- refusal match
+- whether both sources are surfaced
+- GPT-4o faithfulness score
+
+The harness is reproducible:
 
 ```bash
 python -m eval.run_eval \
@@ -332,62 +399,375 @@ python -m eval.run_eval \
   --report eval/results.md
 ```
 
-Use the same command against a deployed URL:
+### Core 40-case eval
 
-```bash
-python -m eval.run_eval \
-  --base-url https://<container-app-fqdn> \
-  --test-set eval/test_set.json \
-  --out eval/results-live.json \
-  --report eval/results-live.md
+| Metric | Bar | Result | Status |
+|---|---:|---:|---|
+| Retrieval recall | >= 0.85 | 0.982 | Met |
+| Refusal accuracy | >= 0.90 | 1.000 | Met |
+| Surfaces both sources | >= 0.75 | 1.000 | Met |
+| Mean faithfulness | >= 0.80 | 0.964 | Met |
+
+### Extended 62-case eval
+
+| Metric | Bar | Result | Status |
+|---|---:|---:|---|
+| Retrieval recall | >= 0.85 | 0.920 | Met |
+| Refusal accuracy | >= 0.90 | 0.984 | Met |
+| Surfaces both sources | >= 0.75 | 0.786 | Met |
+| Mean faithfulness | >= 0.80 | 0.898 | Met |
+
+The extended eval is tougher. It includes more disagreement cases, more paraphrased queries, and adversarial prompts. The system still clears the stated quality bars.
+
+### Known evaluation limitations
+
+The eval is useful, but not magic:
+
+- LLM-as-judge can have length preference and self-preference bias.
+- Refusal matching is based on strings and can miss valid alternative wording.
+- 40 or 62 cases are good regression checks, not statistically significant proof.
+- Disagreement handling is threshold-based and should be calibrated on a larger set.
+
+---
+
+## Security And Operations
+
+### Security posture
+
+| Concern | Implementation |
+|---|---|
+| Secrets in repo | `.env` is ignored; `.env.example` contains placeholders only |
+| Secrets in image | `.env` is excluded by `.dockerignore` |
+| OpenAI key | Stored as Container Apps secret |
+| App Insights connection string | Stored as Container Apps secret |
+| Blob access | Managed identity with Blob Data Reader |
+| Storage keys | Not used by the running app |
+| Public query endpoint | Rate limited |
+| Container user | Non-root `appuser` with UID 10001 |
+| Logs | No raw question text or answer text logged |
+
+### Health checks
+
+| Endpoint | Purpose |
+|---|---|
+| `/healthz` | Fast liveness check, does not call Azure OpenAI |
+| `/readyz` | Readiness check, confirms Azure OpenAI is reachable |
+| `/query` | Main RAG endpoint |
+
+### Observability
+
+The app emits structured JSON logs with:
+
+- timestamp
+- level
+- logger
+- request ID
+- event name
+- route
+- status code
+- duration
+- question hash, not question text
+- retrieved chunk count
+- out-of-corpus decision fields
+- disagreement decision fields
+- citation count
+
+Azure Monitor OpenTelemetry is enabled when `APPLICATIONINSIGHTS_CONNECTION_STRING` is set. Locally it no-ops cleanly.
+
+### Rate limiting
+
+`POST /query` is protected by a small in-memory rolling-window limiter:
+
+```text
+RATE_LIMIT_ENABLED=true
+RATE_LIMIT_REQUESTS=20
+RATE_LIMIT_WINDOW_SECONDS=60
 ```
 
-The harness records HTTP status, latency, answer, citations, retrieval scores, deterministic checks, and a strict GPT-4o faithfulness score for non-refusal cases. Known limitations are documented in the generated report.
+Health and readiness endpoints are not rate limited so platform probes keep working.
 
-## 7. Project Layout
+---
+
+## Azure Deployment
+
+The project includes Azure deployment scripts under `deploy/`.
+
+```text
+deploy/
+|-- setup-storage.sh   Create StorageV2 account and private Blob container
+|-- setup-rbac.sh      Create managed identity and assign Blob reader role
+|-- deploy-stub.sh     Deploy a minimal FastAPI stub
+|-- deploy.sh          Deploy the full RAG app to Azure Container Apps
+```
+
+The intended production-ish Azure shape:
+
+```mermaid
+flowchart LR
+    Dev["Developer machine<br/>Docker + Azure CLI"] --> ACR["Azure Container Registry"]
+    ACR --> ACA["Azure Container Apps<br/>FastAPI RAG service"]
+    Blob["Azure Blob Storage<br/>index artifacts"] --> ACA
+    MI["User-assigned<br/>Managed Identity"] --> ACA
+    MI --> Blob
+    ACA --> AOAI["Azure OpenAI<br/>gpt-4o + embeddings"]
+    ACA --> AI["Application Insights<br/>logs + traces"]
+```
+
+The real app was deployed and smoke-tested on a personal Azure subscription:
+
+- `/healthz` returned 200
+- `/readyz` returned 200
+- `/query` returned real RAG answers with citations
+- Container Apps secret refs were verified
+- managed identity access was verified
+- Azure Monitor telemetry was verified
+- rate limiting was deployed
+
+The deployment has since been deleted to avoid spending Azure credits.
+
+### Deploy from scratch
+
+```bash
+# 1. Create StorageV2 account and private rag-index container
+bash deploy/setup-storage.sh
+
+# 2. Build and optionally upload retrieval artifacts
+python -m app.ingest
+
+# 3. Create managed identity and assign Blob reader access
+bash deploy/setup-rbac.sh
+
+# 4. Build and deploy the full RAG app
+bash deploy/deploy.sh
+```
+
+### Why the original sandbox deployment was blocked
+
+The original Refreshworks sandbox account did not have permission to create Azure role assignments:
+
+```text
+Microsoft.Authorization/roleAssignments/write denied
+```
+
+That blocked the managed identity from being granted:
+
+- `Storage Blob Data Reader` on the Blob container
+- `AcrPull` on the container registry
+
+This was an Azure RBAC permission issue, not an architecture issue. The same deployment pattern worked later on a personal Azure subscription with the necessary permissions.
+
+---
+
+## Quick Start
+
+### 1. Create environment
+
+```bash
+conda create -n rag python=3.11
+conda activate rag
+pip install -r requirements.txt
+```
+
+### 2. Configure environment
+
+```bash
+cp .env.example .env
+```
+
+Fill:
+
+```text
+AZURE_OPENAI_ENDPOINT=<your-endpoint>
+AZURE_OPENAI_KEY=<your-key>
+AZURE_OPENAI_API_VERSION=2024-10-21
+AZURE_OPENAI_CHAT_DEPLOYMENT=gpt-4o
+AZURE_OPENAI_EMBEDDING_DEPLOYMENT=text-embedding-3-large
+BLOB_ACCOUNT_URL=https://<storage-account>.blob.core.windows.net
+BLOB_INDEX_CONTAINER=rag-index
+INDEX_BLOB_PREFIX=latest
+INDEX_LOCAL_DIR=data/index
+APPLICATIONINSIGHTS_CONNECTION_STRING=
+RATE_LIMIT_ENABLED=true
+RATE_LIMIT_REQUESTS=20
+RATE_LIMIT_WINDOW_SECONDS=60
+```
+
+### 3. Build index
+
+```bash
+python -m app.ingest
+```
+
+### 4. Run API
+
+```bash
+uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+### 5. Try a query
+
+```bash
+curl -X POST http://127.0.0.1:8000/query \
+  -H "Content-Type: application/json" \
+  -d "{\"question\":\"How many sick days do I get?\"}"
+```
+
+### 6. Run tests
+
+```bash
+pytest
+```
+
+---
+
+## Project Layout
 
 ```text
 .
-|-- app/                 FastAPI app, ingestion, retrieval, generation, guardrails, observability
-|-- corpus/              HR policy corpus: OpenGov and Made Tech markdown/PDF sources
-|-- data/index/          Local FAISS, BM25, and parquet retrieval artifacts
-|-- deploy/              Azure setup, RBAC, and Container Apps deployment scripts
-|-- eval/                40-case test set, eval runner, judge prompt, latest local results
-|-- sdk/                 Refreshworks SDK template and planning docs kept for assignment context
-|-- tests/               Unit, integration, retrieval, query, eval, and observability tests
-|-- Chats/               Raw AI collaboration transcripts and exports
-|-- AZURE_ACCESS.md      Azure sandbox details; no secrets committed
-|-- CORPUS_SOURCES.md    Corpus provenance and hardcoded source mapping reference
-|-- DECISIONS.md         Architecture decisions and trade-offs
-|-- PROMPTS.md           Curated AI collaboration log
-|-- Dockerfile           Multi-stage Python 3.11 production container
-|-- requirements.txt     Pinned runtime/test/eval dependencies
+|-- app/
+|   |-- api/              FastAPI routes
+|   |-- generation/       GPT-4o prompt and answerer
+|   |-- guardrails/       Out-of-corpus and disagreement detectors
+|   |-- ingest/           Loader, chunker, embedder, indexer, Blob store
+|   |-- observability/    JSON logs, request IDs, telemetry, rate limiting
+|   |-- retrieval/        Hybrid retriever and SDK adapter
+|   |-- config.py         Pydantic settings
+|   |-- main.py           App factory and startup wiring
+|
+|-- corpus/               OpenGov and Made Tech policy files
+|-- data/index/           Local retrieval artifacts
+|-- deploy/               Azure CLI deployment scripts
+|-- eval/                 Test sets, eval runner, reports
+|-- sdk/                  Original Refreshworks SDK template
+|-- tests/                Pytest suite
+|-- CORPUS_SOURCES.md     Source mapping and corpus notes
+|-- Dockerfile            Multi-stage production container
+|-- requirements.txt      Pinned dependencies
 ```
 
-Important API files:
+Key implementation files:
 
-| Path | Purpose |
+| File | Role |
 |---|---|
-| `app/main.py` | FastAPI factory, lifespan startup, index download/load, app state wiring |
-| `app/api/query.py` | Real `/query` flow with retrieval, guardrails, generation, and safe structured logs |
-| `app/ingest/loader.py` | Hardcoded corpus source attribution and PDF/markdown loading |
-| `app/ingest/chunker.py` | Markdown/PDF chunking |
-| `app/ingest/embedder.py` | Azure OpenAI embeddings wrapper with rate limiting and retries |
-| `app/ingest/indexer.py` | Parquet, FAISS, and BM25 artifact builder |
-| `app/retrieval/retriever.py` | Hybrid FAISS/BM25 retriever with RRF |
-| `app/generation/answerer.py` | GPT-4o JSON-mode answer generation and citation validation |
-| `app/guardrails/` | Out-of-corpus and disagreement detectors |
-| `app/observability/` | JSON logging, request IDs, telemetry setup |
+| `app/main.py` | FastAPI factory, lifespan startup, dependency wiring |
+| `app/api/query.py` | End-to-end query flow |
+| `app/ingest/loader.py` | Explicit corpus loading and source attribution |
+| `app/ingest/chunker.py` | Markdown and PDF chunking |
+| `app/ingest/embedder.py` | Azure OpenAI embedding wrapper |
+| `app/ingest/indexer.py` | FAISS, BM25, and parquet artifact builder |
+| `app/retrieval/retriever.py` | Hybrid retrieval with RRF |
+| `app/generation/answerer.py` | GPT-4o answer generation and citation validation |
+| `app/guardrails/out_of_corpus.py` | Refusal decision logic |
+| `app/guardrails/disagreement.py` | Multi-source disagreement detection |
+| `app/observability/rate_limit.py` | Query rate limiter |
 
-## 8. What I Would Do With Another Week
+---
 
-Ranked by practical impact:
+## Key Decisions
 
-1. Get Azure RBAC unblocked, complete the real `hr-rag-app` deployment, then run the eval suite against the live URL.
-2. Move the OpenAI key to Key Vault references instead of Container Apps secrets for centralized rotation.
-3. Add OAuth2/JWT auth and basic rate limiting before exposing `/query` outside an assignment sandbox.
-4. Calibrate out-of-corpus thresholds with a larger in-corpus vs out-of-corpus score distribution.
-5. Tune disagreement detection thresholds using the evaluation set and add more disagreement cases.
-6. Run chunking experiments across `{400/50, 600/75, 800/100, 1000/125}` and report retrieval/faithfulness curves.
-7. Add a cross-encoder reranker over the fused top 20 results for better precision.
-8. Expand evaluation beyond 40 cases and cross-check with RAGAS or DeepEval.
+The main implementation choices:
+
+| Decision | Choice |
+|---|---|
+| Compute target | Azure Container Apps |
+| API framework | FastAPI |
+| Vector store | FAISS in memory, persisted to Blob |
+| Lexical retrieval | BM25 |
+| Fusion | Reciprocal Rank Fusion |
+| Embeddings | Azure OpenAI `text-embedding-3-large` |
+| Generation | Azure OpenAI `gpt-4o` |
+| Markdown chunking | Heading-aware with breadcrumbs |
+| PDF chunking | Paragraph packing with page markers |
+| Out-of-corpus | RRF score threshold + GPT-4o judge |
+| Disagreement | Source split + centroid similarity + prompt branch |
+| Secrets | Container Apps secrets |
+| Blob auth | Managed identity |
+| Observability | JSON logs + Azure Monitor OpenTelemetry |
+
+---
+
+## Future Developments
+
+If I continued this project, I would focus on making it closer to a long-lived internal enterprise service.
+
+### 1. Authentication and access control
+
+Add Entra ID authentication or OAuth2/JWT middleware so `/query` is not public. For an internal HR assistant, identity matters because access can depend on employee location, department, and handbook scope.
+
+### 2. Key Vault integration
+
+Move from Container Apps secrets to Azure Key Vault references. Container Apps secrets are good for a small deployment, but Key Vault gives better central rotation, audit trails, and separation of duties.
+
+### 3. Private networking
+
+Use private endpoints for Blob Storage and Azure OpenAI where the Azure subscription allows it. That would make the architecture better aligned with enterprise Azure environments in Europe.
+
+### 4. Larger evaluation set
+
+Expand the eval set from 40 and 62 cases to 100+ cases. Add more adversarial cases, more disagreement cases, and more short ambiguous questions.
+
+### 5. Reranking
+
+Add a cross-encoder reranker over the fused top 20 chunks. Hybrid retrieval already works well, but reranking would improve precision for source-disagreement questions.
+
+### 6. Better threshold calibration
+
+Calibrate out-of-corpus and disagreement thresholds using a larger distribution of in-corpus, adjacent, and clearly out-of-corpus questions.
+
+### 7. Chunking experiments
+
+Run chunk-size sweeps across:
+
+```text
+400/50
+600/75
+800/100
+1000/125
+```
+
+Then compare recall, faithfulness, latency, and disagreement surfacing.
+
+### 8. UI layer
+
+Build a small internal HR assistant UI with:
+
+- question box
+- answer panel
+- citation drawer
+- source comparison view
+- feedback buttons
+- request ID display for support/debugging
+
+### 9. CI/CD
+
+Add GitHub Actions for:
+
+- ruff
+- pytest
+- Docker build
+- eval smoke run
+- Azure deploy dry run
+
+### 10. Production dashboards
+
+Add App Insights workbooks or Grafana dashboards for:
+
+- query volume
+- refusal rate
+- disagreement rate
+- OpenAI latency
+- citation count
+- answer parse errors
+- rate-limit events
+
+---
+
+## References
+
+- Azure Container Apps: https://learn.microsoft.com/azure/container-apps/
+- Azure OpenAI Service: https://learn.microsoft.com/azure/ai-services/openai/
+- Azure Managed Identity: https://learn.microsoft.com/azure/container-apps/managed-identity
+- Azure Monitor OpenTelemetry: https://learn.microsoft.com/azure/azure-monitor/app/opentelemetry-enable
+- FAISS: https://github.com/facebookresearch/faiss
+- Rank BM25: https://github.com/dorianbrown/rank_bm25
+- FastAPI: https://fastapi.tiangolo.com/

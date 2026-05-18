@@ -19,9 +19,6 @@ Standardised GitHub repository template for Retrieval-Augmented Generation (RAG)
 ├── database/                # Database setup, migrations, deployment scripts
 ├── qdrant/                  # Local Qdrant vector DB management
 │   └── run.sh               #   Docker start/stop/status
-├── planning/                # Project planning artifacts
-│   ├── plan.md              #   Vision, backlog, sprint plan template
-│   └── erd-template.md      #   Entity Relationship Diagram template
 ├── docs/                    # Documentation
 │   ├── azure-deployment-tiers.md  # Dev / Staging / Prod resource specs
 │   └── branching-strategy.md      # Git workflow & branch protection rules
@@ -116,13 +113,6 @@ feature branch  ──PR──▶  dev  ──PR──▶  main
 - **Commit format:** `type(scope): description` ([Conventional Commits](https://www.conventionalcommits.org/)).
 - **Required CI checks:** `lint` + `test-unit` must pass before merge.
 
-## Planning & Architecture
-
-Before building, update the planning artifacts:
-
-1. **Project plan** — [`planning/plan.md`](planning/plan.md): vision, backlog, sprint plan.
-2. **Architecture & data model** — [`planning/erd-template.md`](planning/erd-template.md): system architecture, data flows, API contracts, vector store schema, database ERD, and environment variables. Fill this out *before* coding.
-
 ## AI Assistant Guidelines
 
 See [`AGENTS.md`](AGENTS.md) for conventions when working with AI coding assistants (commit strategy, file access, development approach).
@@ -146,10 +136,8 @@ See [`AGENTS.md`](AGENTS.md) for conventions when working with AI coding assista
 1. Click **"Use this template"** on GitHub (or clone manually).
 2. Rename resource references in `backend/deploy.sh` (resource group, storage account, function app name).
 3. Copy and fill in `backend/.env.example` → `backend/.env`.
-4. Customise `planning/plan.md` with your project's vision and backlog.
-5. Create your ERD in `planning/erd-template.md` before starting the build phase.
-6. Set up branch protection rules on `main` per `docs/branching-strategy.md`.
-7. Start building!
+4. Set up branch protection rules on `main` per `docs/branching-strategy.md`.
+5. Start building!
 
 ## License
 
